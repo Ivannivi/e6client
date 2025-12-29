@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.e6client.app',
   appName: 'E6 Web Client',
   webDir: 'dist',
-  bundledWebRuntime: false
 };
 
 export default config;

@@ -1,4 +1,6 @@
-export interface E6File {
+export type Rating = 's' | 'q' | 'e';
+
+export interface FileInfo {
   width: number;
   height: number;
   ext: string;
@@ -7,13 +9,27 @@ export interface E6File {
   url: string | null;
 }
 
-export interface E6Score {
+export interface PreviewInfo {
+  width: number;
+  height: number;
+  url: string | null;
+}
+
+export interface SampleInfo {
+  has: boolean;
+  height: number;
+  width: number;
+  url: string | null;
+  alternates: Record<string, unknown>;
+}
+
+export interface Score {
   up: number;
   down: number;
   total: number;
 }
 
-export interface E6Tags {
+export interface Tags {
   general: string[];
   species: string[];
   character: string[];
@@ -23,45 +39,39 @@ export interface E6Tags {
   lore: string[];
 }
 
+export interface PostFlags {
+  pending: boolean;
+  flagged: boolean;
+  note_locked: boolean;
+  status_locked: boolean;
+  rating_locked: boolean;
+  deleted: boolean;
+}
+
+export interface Relationships {
+  parent_id: number | null;
+  has_children: boolean;
+  has_active_children: boolean;
+  children: number[];
+}
+
 export interface Post {
   id: number;
   created_at: string;
   updated_at: string;
-  file: E6File;
-  preview: {
-    width: number;
-    height: number;
-    url: string | null;
-  };
-  sample: {
-    has: boolean;
-    height: number;
-    width: number;
-    url: string | null;
-    alternates: any;
-  };
-  score: E6Score;
-  tags: E6Tags;
+  file: FileInfo;
+  preview: PreviewInfo;
+  sample: SampleInfo;
+  score: Score;
+  tags: Tags;
   locked_tags: string[];
   change_seq: number;
-  flags: {
-    pending: boolean;
-    flagged: boolean;
-    note_locked: boolean;
-    status_locked: boolean;
-    rating_locked: boolean;
-    deleted: boolean;
-  };
-  rating: 's' | 'q' | 'e';
+  flags: PostFlags;
+  rating: Rating;
   fav_count: number;
   sources: string[];
   pools: number[];
-  relationships: {
-    parent_id: number | null;
-    has_children: boolean;
-    has_active_children: boolean;
-    children: number[];
-  };
+  relationships: Relationships;
   approver_id: number | null;
   uploader_id: number;
   description: string;
@@ -75,7 +85,7 @@ export interface Comment {
   id: number;
   post_id: number;
   creator_id: number;
-  creator: string; // author name
+  creator: string;
   body: string;
   score: number;
   created_at: string;
@@ -90,22 +100,31 @@ export interface User {
   blacklisted_tags: string;
 }
 
-export interface AppSettings {
+export interface TagSuggestion {
+  id: number;
+  name: string;
+  post_count: number;
+  category: number;
+}
+
+export interface Settings {
   username: string;
   apiKey: string;
-  proxyUrl: string; // Acts as Base URL (e.g., local proxy or e621.net)
+  proxyUrl: string;
   enableProxy: boolean;
-  safeMode: boolean; // Blurs Q/E content
+  nsfwEnabled: boolean;
+  safeMode: boolean;
   darkMode: boolean;
   blacklistedTags: string[];
 }
 
-export const DEFAULT_SETTINGS: AppSettings = {
+export const createDefaultSettings = (): Settings => ({
   username: '',
   apiKey: '',
   proxyUrl: 'https://corsproxy.io/?',
-  enableProxy: false, // Default disabled as requested
+  enableProxy: false,
+  nsfwEnabled: false,
   safeMode: false,
   darkMode: true,
   blacklistedTags: [],
-};
+});
