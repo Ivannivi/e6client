@@ -36,23 +36,23 @@ export function useColumnCount(): number {
 export function useIntersectionObserver(
   ref: RefObject<HTMLElement | null>,
   callback: () => void,
-  options: { threshold?: number } = {}
+  options: { threshold?: number; rootMargin?: string } = {}
 ): void {
-  const { threshold = 0.5 } = options;
+  const { threshold = 0.1, rootMargin = '400px' } = options;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) callback();
       },
-      { threshold }
+      { threshold, rootMargin }
     );
 
     const element = ref.current;
     if (element) observer.observe(element);
 
     return () => observer.disconnect();
-  }, [ref, callback, threshold]);
+  }, [ref, callback, threshold, rootMargin]);
 }
 
 export function useLocalStorage<T>(
