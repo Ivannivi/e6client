@@ -6,7 +6,6 @@ import { PostDetail } from './components/PostDetail';
 import { SettingsModal } from './components/SettingsModal';
 import { useSettings } from './hooks/useSettings';
 import { Post, AppSettings } from './types';
-import { App as CapacitorApp } from '@capacitor/app';
 
 // Simple debounce helper
 function useDebounce<T>(value: T, delay: number): T {
@@ -74,6 +73,11 @@ const App: React.FC = () => {
 
   // Android back button handler
   useEffect(() => {
+    // Only register on mobile (when Capacitor is available)
+    if (!window.Capacitor) return;
+
+    const { App: CapacitorApp } = window.Capacitor.Plugins;
+    
     const handleBackButton = async () => {
       // If detail view is open, close it
       if (selectedPost) {
