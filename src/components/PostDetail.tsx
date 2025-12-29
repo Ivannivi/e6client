@@ -119,17 +119,17 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md animate-fade-in pt-safe"
       onClick={onClose}
     >
       <div
         className="w-full h-full md:w-[95vw] md:h-[90vh] bg-white dark:bg-gray-900 md:rounded-lg overflow-hidden flex flex-col md:flex-row shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Mobile close button */}
+        {/* Mobile close button - Positioned above status bar using safe area */}
         <button
           onClick={onClose}
-          className="md:hidden absolute top-4 right-4 z-50 bg-black/50 text-white rounded-full p-2 w-10 h-10 flex items-center justify-center"
+          className="md:hidden absolute top-safe right-4 z-50 bg-black/50 text-white rounded-full p-2 w-10 h-10 flex items-center justify-center"
         >
           <i className="fas fa-times" />
         </button>

@@ -28,8 +28,52 @@ export default function App() {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement>(null);
+  const navigationHistory = useRef<Tab[]>([]);
   const debouncedQuery = useDebounce(query, 300);
   const numCols = useColumnCount();
+
+  // Android back button handler
+  useEffect(() => {
+    // Only register on mobile (when Capacitor is available)
+    if (!window.Capacitor) return;
+
+    const { App: CapacitorApp } = window.Capacitor.Plugins;
+    
+    const handleBackButton = async () => {
+      // If detail view is open, close it
+      if (selectedPost) {
+        setSelectedPost(null);
+        return;
+      }
+      // If settings are open, close them
+      if (settingsOpen) {
+        setSettingsOpen(false);
+        return;
+      }
+      // If there's navigation history, go back
+      if (navigationHistory.current.length > 0) {
+        const previousTab = navigationHistory.current.pop()!;
+        setTab(previousTab);
+        return;
+      }
+      // Otherwise, exit the app
+      CapacitorApp.exitApp();
+    };
+
+    CapacitorApp.addListener('backButton', handleBackButton);
+    
+    return () => {
+      CapacitorApp.removeAllListeners();
+    };
+  }, [selectedPost, settingsOpen]);
+
+  // Track tab changes for back navigation
+  const handleTabChange = useCallback((newTab: Tab) => {
+    if (newTab !== tab) {
+      navigationHistory.current.push(tab);
+      setTab(newTab);
+    }
+  }, [tab]);
 
   // Autocomplete
   useEffect(() => {
@@ -119,7 +163,7 @@ export default function App() {
 
   const handleTagSearch = (tag: string) => {
     setQuery(tag);
-    setTab('home');
+    handleTabChange('home');
     setHasMore(true);
     setTimeout(() => fetchPosts(true), 0);
   };
@@ -131,7 +175,7 @@ export default function App() {
 
   const goHome = () => {
     setQuery('');
-    setTab('home');
+    handleTabChange('home');
     fetchPosts(true);
   };
 
@@ -191,7 +235,7 @@ export default function App() {
 
       {/* Main */}
       <main className="flex-1 container mx-auto px-4 py-6">
-        <TabBar active={tab} onChange={(t) => { setTab(t); setPage(1); }} />
+        <TabBar active={tab} onChange={(t) => { handleTabChange(t); setPage(1); }} />
 
         {error && (
           <ErrorBanner
