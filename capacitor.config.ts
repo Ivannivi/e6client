@@ -1,9 +1,10 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.example.e6client',
-  appName: 'e6client',
-  webDir: 'dist'
+  appId: 'com.e6client.app',
+  appName: 'E6 Web Client',
+  webDir: 'dist',
+  bundledWebRuntime: false
 };
 
 export default config;
