@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://github.com/Ivannivi/e6client",
   "author": {
     "name": "Ivan",
     "email": "dudkinivan1245@gmail.com"
