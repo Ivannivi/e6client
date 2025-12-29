@@ -6,6 +6,7 @@ import { PostDetail } from './components/PostDetail';
 import { SettingsModal } from './components/SettingsModal';
 import { useSettings } from './hooks/useSettings';
 import { Post, AppSettings } from './types';
+import { App as CapacitorApp } from '@capacitor/app';
 
 // Simple debounce helper
 function useDebounce<T>(value: T, delay: number): T {
@@ -66,9 +67,48 @@ const App: React.FC = () => {
   
   // Infinite Scroll Ref
   const loaderRef = useRef<HTMLDivElement>(null);
+  const navigationHistory = useRef<('home' | 'favorites')[]>([]);
   
   const debouncedSearchTerm = useDebounce(searchQuery, 300);
   const numCols = useColumnCount();
+
+  // Android back button handler
+  useEffect(() => {
+    const handleBackButton = async () => {
+      // If detail view is open, close it
+      if (selectedPost) {
+        setSelectedPost(null);
+        return;
+      }
+      // If settings are open, close them
+      if (isSettingsOpen) {
+        setIsSettingsOpen(false);
+        return;
+      }
+      // If there's navigation history, go back
+      if (navigationHistory.current.length > 0) {
+        const previousTab = navigationHistory.current.pop()!;
+        setActiveTab(previousTab);
+        return;
+      }
+      // Otherwise, exit the app
+      CapacitorApp.exitApp();
+    };
+
+    CapacitorApp.addListener('backButton', handleBackButton);
+    
+    return () => {
+      CapacitorApp.removeAllListeners();
+    };
+  }, [selectedPost, isSettingsOpen]);
+
+  // Track tab changes for back navigation
+  const handleTabChange = useCallback((tab: 'home' | 'favorites') => {
+    if (tab !== activeTab) {
+      navigationHistory.current.push(activeTab);
+      setActiveTab(tab);
+    }
+  }, [activeTab]);
 
   // Autocomplete
   useEffect(() => {
@@ -217,7 +257,7 @@ const App: React.FC = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-md pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 flex items-center gap-4">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setSearchQuery(''); setActiveTab('home'); fetchPosts(true); }}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setSearchQuery(''); handleTabChange('home'); setPage(1); fetchPosts(true); }}>
             <div className="w-8 h-8 bg-e6-base rounded-md flex items-center justify-center text-white font-bold">
               e6
             </div>
@@ -268,13 +308,13 @@ const App: React.FC = () => {
         {/* Tab Header (Desktop/Tablet) */}
         <div className="flex mb-6 space-x-4">
              <button 
-                onClick={() => { setActiveTab('home'); setPage(1); }}
+                onClick={() => { handleTabChange('home'); setPage(1); }}
                 className={`px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'home' ? 'bg-e6-light text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
              >
                  <i className="fas fa-home mr-2"></i> Browse
              </button>
              <button 
-                onClick={() => { setActiveTab('favorites'); setPage(1); }}
+                onClick={() => { handleTabChange('favorites'); setPage(1); }}
                 className={`px-4 py-2 rounded-lg font-bold transition-colors ${activeTab === 'favorites' ? 'bg-e6-light text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
              >
                  <i className="fas fa-heart mr-2"></i> Favorites
@@ -366,14 +406,14 @@ const App: React.FC = () => {
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 flex justify-around py-2 z-30 pb-[env(safe-area-inset-bottom)]">
         <button 
-            onClick={() => setActiveTab('home')}
+            onClick={() => handleTabChange('home')}
             className={`flex flex-col items-center p-2 ${activeTab === 'home' ? 'text-e6-light' : 'text-gray-500'}`}
         >
             <i className="fas fa-home text-xl mb-1"></i>
             <span className="text-xs">Browse</span>
         </button>
         <button 
-            onClick={() => setActiveTab('favorites')}
+            onClick={() => handleTabChange('favorites')}
             className={`flex flex-col items-center p-2 ${activeTab === 'favorites' ? 'text-e6-light' : 'text-gray-500'}`}
         >
             <i className="fas fa-heart text-xl mb-1"></i>
