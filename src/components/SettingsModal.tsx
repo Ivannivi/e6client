@@ -135,7 +135,7 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
         </nav>
 
         {/* Content */}
-        <div className="p-6 space-y-6 flex-1 overflow-y-auto bg-white dark:bg-gray-800">
+        <div className="p-6 space-y-6 flex-1 overflow-y-auto bg-white dark:bg-gray-800 min-h-[350px]">
           {activeTab === 'account' && (
             <AccountTab
               settings={local}
