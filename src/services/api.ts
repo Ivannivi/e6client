@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import type { Settings, Post, Comment, User, TagSuggestion } from '../types';
+import { getActiveAccount } from '../types';
 import { APP_CONFIG } from '../config';
 
 const http = axios.create({
@@ -11,17 +12,20 @@ function buildApiUrl(
   params: Record<string, string>,
   settings: Settings
 ): string {
+  const activeAccount = getActiveAccount(settings);
+  const baseUrl = activeAccount?.hostUrl || APP_CONFIG.api.baseUrl;
+  
   const searchParams: Record<string, string> = {
     ...params,
     _cb: Date.now().toString(),
   };
 
-  if (settings.username && settings.apiKey) {
-    searchParams.login = settings.username.trim();
-    searchParams.api_key = settings.apiKey.trim();
+  if (activeAccount?.username && activeAccount?.apiKey) {
+    searchParams.login = activeAccount.username.trim();
+    searchParams.api_key = activeAccount.apiKey.trim();
   }
 
-  const targetUrl = new URL(`${APP_CONFIG.api.baseUrl}${endpoint}`);
+  const targetUrl = new URL(`${baseUrl}${endpoint}`);
   Object.entries(searchParams).forEach(([k, v]) => targetUrl.searchParams.append(k, v));
   const targetString = targetUrl.toString();
 
@@ -33,7 +37,7 @@ function buildApiUrl(
     return `${settings.proxyUrl}${encodeURIComponent(targetString)}`;
   }
 
-  return targetString.replace(APP_CONFIG.api.baseUrl, settings.proxyUrl.replace(/\/$/, ''));
+  return targetString.replace(baseUrl, settings.proxyUrl.replace(/\/$/, ''));
 }
 
 async function fetchWithRetry<T>(

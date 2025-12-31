@@ -9,10 +9,37 @@ export function useSettings() {
       if (!stored) return createDefaultSettings();
       const parsed = JSON.parse(stored);
       const defaults = createDefaultSettings();
+      
+      // Migration: convert old single-account format to new multi-account format
+      if (parsed.username !== undefined && parsed.accounts === undefined) {
+        const migratedSettings: Settings = {
+          ...defaults,
+          ...parsed,
+          accounts: [],
+          activeAccountId: null,
+          blacklistedTags: Array.isArray(parsed.blacklistedTags) 
+            ? parsed.blacklistedTags 
+            : defaults.blacklistedTags,
+        };
+        // If old format had credentials, create an account
+        if (parsed.username && parsed.apiKey) {
+          const account = {
+            id: crypto.randomUUID(),
+            name: parsed.username,
+            username: parsed.username,
+            apiKey: parsed.apiKey,
+            hostUrl: 'https://e621.net',
+          };
+          migratedSettings.accounts = [account];
+          migratedSettings.activeAccountId = account.id;
+        }
+        return migratedSettings;
+      }
+      
       return {
         ...defaults,
         ...parsed,
-        // Ensure arrays are always arrays
+        accounts: Array.isArray(parsed.accounts) ? parsed.accounts : defaults.accounts,
         blacklistedTags: Array.isArray(parsed.blacklistedTags) 
           ? parsed.blacklistedTags 
           : defaults.blacklistedTags,

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo, FormEvent } from 'react';
 import type { Post, Settings, TagSuggestion } from './types';
+import { getActiveAccount } from './types';
 import { api, parseApiError } from './services/api';
 import { PostCard } from './components/PostCard';
 import { PostDetail } from './components/PostDetail';
@@ -98,10 +99,11 @@ export default function App() {
         let finalQuery = query;
 
         if (tab === 'favorites') {
-          if (!settings.username) {
+          const activeAccount = getActiveAccount(settings);
+          if (!activeAccount?.username) {
             throw new Error('Please set your username in Settings > Account to view favorites.');
           }
-          finalQuery = `fav:${settings.username} ${query}`;
+          finalQuery = `fav:${activeAccount.username} ${query}`;
         }
 
         if (!settings.nsfwEnabled) {
@@ -306,7 +308,8 @@ export default function App() {
 /* ---------- Sub-components ---------- */
 
 function TabBar({ active, onChange, settings }: { active: Tab; onChange: (t: Tab) => void; settings: Settings }) {
-  const isLoggedIn = !!(settings.username && settings.apiKey);
+  const activeAccount = getActiveAccount(settings);
+  const isLoggedIn = !!(activeAccount?.username && activeAccount?.apiKey);
   return (
     <nav className="flex mb-6 space-x-4">
       <TabButton active={active === 'home'} icon="fa-home" label="Browse" onClick={() => onChange('home')} />
@@ -391,7 +394,8 @@ function MobileNav({
   onSettings: () => void;
   settings: Settings;
 }) {
-  const isLoggedIn = !!(settings.username && settings.apiKey);
+  const activeAccount = getActiveAccount(settings);
+  const isLoggedIn = !!(activeAccount?.username && activeAccount?.apiKey);
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 flex justify-around py-2 z-30 pb-[env(safe-area-inset-bottom)]">
       <MobileNavItem active={active === 'home'} icon="fa-home" label="Browse" onClick={() => onTabChange('home')} />

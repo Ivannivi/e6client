@@ -107,9 +107,17 @@ export interface TagSuggestion {
   category: number;
 }
 
-export interface Settings {
+export interface Account {
+  id: string;
+  name: string; // Display name for the account
   username: string;
   apiKey: string;
+  hostUrl: string; // Custom host URL (e.g., https://e621.net or https://e926.net)
+}
+
+export interface Settings {
+  accounts: Account[];
+  activeAccountId: string | null;
   proxyUrl: string;
   enableProxy: boolean;
   nsfwEnabled: boolean;
@@ -119,12 +127,25 @@ export interface Settings {
 }
 
 export const createDefaultSettings = (): Settings => ({
-  username: '',
-  apiKey: '',
+  accounts: [],
+  activeAccountId: null,
   proxyUrl: 'https://corsproxy.io/?',
   enableProxy: false,
   nsfwEnabled: false,
   safeMode: false,
   darkMode: true,
   blacklistedTags: [],
+});
+
+export const getActiveAccount = (settings: Settings): Account | null => {
+  if (!settings.activeAccountId) return null;
+  return settings.accounts.find((a) => a.id === settings.activeAccountId) || null;
+};
+
+export const createAccount = (partial: Partial<Account> = {}): Account => ({
+  id: crypto.randomUUID(),
+  name: partial.name || 'New Account',
+  username: partial.username || '',
+  apiKey: partial.apiKey || '',
+  hostUrl: partial.hostUrl || 'https://e621.net',
 });
