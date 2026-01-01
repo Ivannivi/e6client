@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo, FormEvent } from 'react';
 import type { Post, Settings, TagSuggestion } from './types';
+import { getActiveAccount } from './types';
 import { api, parseApiError } from './services/api';
 import { PostCard } from './components/PostCard';
 import { PostDetail } from './components/PostDetail';
@@ -98,10 +99,11 @@ export default function App() {
         let finalQuery = query;
 
         if (tab === 'favorites') {
-          if (!settings.username) {
+          const activeAccount = getActiveAccount(settings);
+          if (!activeAccount?.username) {
             throw new Error('Please set your username in Settings > Account to view favorites.');
           }
-          finalQuery = `fav:${settings.username} ${query}`;
+          finalQuery = `fav:${activeAccount.username} ${query}`;
         }
 
         if (!settings.nsfwEnabled) {
@@ -235,7 +237,7 @@ export default function App() {
 
       {/* Main */}
       <main className="flex-1 container mx-auto px-4 py-6">
-        <TabBar active={tab} onChange={(t) => { handleTabChange(t); setPage(1); }} />
+        <TabBar active={tab} onChange={(t) => { handleTabChange(t); setPage(1); }} settings={settings} />
 
         {error && (
           <ErrorBanner
@@ -298,18 +300,22 @@ export default function App() {
       />
 
       {/* Mobile navigation */}
-      <MobileNav active={tab} onTabChange={setTab} onSettings={() => setSettingsOpen(true)} />
+      <MobileNav active={tab} onTabChange={setTab} onSettings={() => setSettingsOpen(true)} settings={settings} />
     </div>
   );
 }
 
 /* ---------- Sub-components ---------- */
 
-function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
+function TabBar({ active, onChange, settings }: { active: Tab; onChange: (t: Tab) => void; settings: Settings }) {
+  const activeAccount = getActiveAccount(settings);
+  const isLoggedIn = !!(activeAccount?.username && activeAccount?.apiKey);
   return (
     <nav className="flex mb-6 space-x-4">
       <TabButton active={active === 'home'} icon="fa-home" label="Browse" onClick={() => onChange('home')} />
-      <TabButton active={active === 'favorites'} icon="fa-heart" label="Favorites" onClick={() => onChange('favorites')} />
+      {isLoggedIn && (
+        <TabButton active={active === 'favorites'} icon="fa-heart" label="Favorites" onClick={() => onChange('favorites')} />
+      )}
     </nav>
   );
 }
@@ -381,15 +387,21 @@ function MobileNav({
   active,
   onTabChange,
   onSettings,
+  settings,
 }: {
   active: Tab;
   onTabChange: (t: Tab) => void;
   onSettings: () => void;
+  settings: Settings;
 }) {
+  const activeAccount = getActiveAccount(settings);
+  const isLoggedIn = !!(activeAccount?.username && activeAccount?.apiKey);
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 flex justify-around py-2 z-30 pb-[env(safe-area-inset-bottom)]">
       <MobileNavItem active={active === 'home'} icon="fa-home" label="Browse" onClick={() => onTabChange('home')} />
-      <MobileNavItem active={active === 'favorites'} icon="fa-heart" label="Favorites" onClick={() => onTabChange('favorites')} />
+      {isLoggedIn && (
+        <MobileNavItem active={active === 'favorites'} icon="fa-heart" label="Favorites" onClick={() => onTabChange('favorites')} />
+      )}
       <MobileNavItem icon="fa-cog" label="Settings" onClick={onSettings} />
     </nav>
   );
