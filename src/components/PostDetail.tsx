@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, Key } from 'react';
 import type { Post, Settings, Comment } from '../types';
 import { api } from '../services/api';
 import { RATING, TAG_STYLES } from '../config';
-import { formatFileSize, cn } from '../utils';
+import { formatFileSize, cn, downloadFile, shareContent, generatePostFilename, copyToClipboard } from '../utils';
 
 interface Props {
   post: Post;
@@ -20,6 +20,9 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
   const [loadingComments, setLoadingComments] = useState(false);
   const [uploaderName, setUploaderName] = useState('Unknown');
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [showCopied, setShowCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +67,46 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
     onClose();
     onSearchTag?.(tag);
   }, [onClose, onSearchTag]);
+
+  const handleDownload = useCallback(async () => {
+    if (!post.file.url || downloading) return;
+    
+    setDownloading(true);
+    setDownloadProgress(0);
+    
+    try {
+      const filename = generatePostFilename(post);
+      await downloadFile(post.file.url, filename, setDownloadProgress);
+    } catch (error) {
+      console.error('Download failed:', error);
+    } finally {
+      setDownloading(false);
+      setDownloadProgress(0);
+    }
+  }, [post, downloading]);
+
+  const handleShare = useCallback(async () => {
+    const url = `https://e621.net/posts/${post.id}`;
+    const shared = await shareContent({
+      title: `Post #${post.id}`,
+      text: `Check out this post by ${post.tags.artist.join(', ') || 'unknown artist'}`,
+      url,
+    });
+    
+    if (shared) {
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
+    }
+  }, [post]);
+
+  const handleCopyLink = useCallback(async () => {
+    const url = `https://e621.net/posts/${post.id}`;
+    const success = await copyToClipboard(url);
+    if (success) {
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
+    }
+  }, [post.id]);
 
   const renderTags = (tags: string[], category: TagCategory) => {
     if (!tags || tags.length === 0) return null;
@@ -198,7 +241,34 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                   active={post.is_favorited}
                   hoverColor="text-red-500"
                 />
-                <ActionButton icon="fa-download" label="Save" hoverColor="text-blue-500" />
+                <button
+                  onClick={handleDownload}
+                  disabled={downloading || !post.file.url}
+                  className={cn(
+                    'flex flex-col items-center transition-colors relative',
+                    downloading ? 'text-blue-500' : 'text-gray-500 hover:text-blue-500',
+                    !post.file.url && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  <i className={cn('fas text-xl mb-1', downloading ? 'fa-spinner fa-spin' : 'fa-download')} />
+                  <span className="text-xs">
+                    {downloading ? `${downloadProgress}%` : 'Save'}
+                  </span>
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="flex flex-col items-center text-gray-500 hover:text-purple-500 transition-colors relative"
+                >
+                  <i className="fas fa-share-alt text-xl mb-1" />
+                  <span className="text-xs">{showCopied ? 'Copied!' : 'Share'}</span>
+                </button>
+                <button
+                  onClick={handleCopyLink}
+                  className="flex flex-col items-center text-gray-500 hover:text-green-500 transition-colors"
+                >
+                  <i className="fas fa-link text-xl mb-1" />
+                  <span className="text-xs">Copy</span>
+                </button>
                 <a
                   href={`https://e621.net/posts/${post.id}`}
                   target="_blank"

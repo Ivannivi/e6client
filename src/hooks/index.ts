@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef, useCallback, RefObject } from 'react';
 import { APP_CONFIG } from '../config';
 
+export { useSearchHistory } from './useSearchHistory';
+export { useKeyboardShortcuts, SHORTCUT_DESCRIPTIONS } from './useKeyboardShortcuts';
+export { useToast } from './useToast';
+export { useViewMode } from './useViewMode';
+export type { ViewMode } from './useViewMode';
+export type { Toast } from './useToast';
+
 export function useDebounce<T>(value: T, delay = APP_CONFIG.ui.debounceDelay): T {
   const [debounced, setDebounced] = useState(value);
 
