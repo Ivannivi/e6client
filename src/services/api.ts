@@ -83,7 +83,7 @@ export const api = {
     settings: Settings,
     tags = '',
     page = 1,
-    limit = APP_CONFIG.api.defaultPageSize
+    limit: number = APP_CONFIG.api.defaultPageSize
   ): Promise<Post[]> {
     const url = buildApiUrl('/posts.json', {
       tags,

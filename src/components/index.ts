@@ -1,3 +1,9 @@
 export { PostCard } from './PostCard';
 export { PostDetail } from './PostDetail';
+export { PostListItem } from './PostListItem';
 export { SettingsModal } from './SettingsModal';
+export { ToastContainer } from './Toast';
+export { SearchHistory } from './SearchHistory';
+export { ViewModeToggle } from './ViewModeToggle';
+export { QuickActions } from './QuickActions';
+export { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';

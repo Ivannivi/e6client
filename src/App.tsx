@@ -1,18 +1,35 @@
-import { useState, useEffect, useCallback, useRef, useMemo, FormEvent } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, FormEvent, Key } from 'react';
 import type { Post, Settings, TagSuggestion } from './types';
 import { getActiveAccount } from './types';
 import { api, parseApiError } from './services/api';
 import { PostCard } from './components/PostCard';
+import { PostListItem } from './components/PostListItem';
 import { PostDetail } from './components/PostDetail';
 import { SettingsModal } from './components/SettingsModal';
+import { ToastContainer } from './components/Toast';
+import { SearchHistory } from './components/SearchHistory';
+import { ViewModeToggle } from './components/ViewModeToggle';
+import { QuickActions } from './components/QuickActions';
+import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
 import { useSettings } from './hooks/useSettings';
-import { useDebounce, useColumnCount, useIntersectionObserver } from './hooks';
+import { 
+  useDebounce, 
+  useColumnCount, 
+  useIntersectionObserver,
+  useSearchHistory,
+  useKeyboardShortcuts,
+  useToast,
+  useViewMode,
+} from './hooks';
 import { isPostBlacklisted, distributeToColumns, cn } from './utils';
 
 type Tab = 'home' | 'favorites';
 
 export default function App() {
   const { settings, updateSettings } = useSettings();
+  const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
+  const { toasts, success, error: showError, info, removeToast } = useToast();
+  const { viewMode, setViewMode, toggleViewMode } = useViewMode();
 
   const [tab, setTab] = useState<Tab>('home');
   const [posts, setPosts] = useState<Post[]>([]);
@@ -25,8 +42,11 @@ export default function App() {
 
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [shortcutsHelpOpen, setShortcutsHelpOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<TagSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement>(null);
   const navigationHistory = useRef<Tab[]>([]);
@@ -75,6 +95,82 @@ export default function App() {
       setTab(newTab);
     }
   }, [tab]);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: '/',
+      action: () => document.getElementById('search-input')?.focus(),
+      description: 'Focus search',
+    },
+    {
+      key: 'r',
+      action: () => fetchPosts(true),
+      description: 'Refresh',
+    },
+    {
+      key: 'x',
+      action: () => fetchRandomPost(),
+      description: 'Random post',
+    },
+    {
+      key: 's',
+      action: () => setSettingsOpen(true),
+      description: 'Settings',
+    },
+    {
+      key: 'Escape',
+      action: () => {
+        if (selectedPost) setSelectedPost(null);
+        else if (settingsOpen) setSettingsOpen(false);
+        else if (shortcutsHelpOpen) setShortcutsHelpOpen(false);
+      },
+      description: 'Close',
+    },
+    {
+      key: 'h',
+      action: () => handleTabChange('home'),
+      description: 'Home',
+    },
+    {
+      key: 'f',
+      action: () => {
+        const activeAccount = getActiveAccount(settings);
+        if (activeAccount?.username) handleTabChange('favorites');
+      },
+      description: 'Favorites',
+    },
+    {
+      key: 'v',
+      action: toggleViewMode,
+      description: 'Toggle view',
+    },
+    {
+      key: '?',
+      action: () => setShortcutsHelpOpen(true),
+      description: 'Help',
+    },
+  ], !settingsOpen && !selectedPost);
+
+  // Random post
+  const fetchRandomPost = useCallback(async () => {
+    setLoading(true);
+    try {
+      let randomQuery = 'order:random';
+      if (!settings.nsfwEnabled) {
+        randomQuery = 'rating:s ' + randomQuery;
+      }
+      const randomPosts = await api.getPosts(settings, randomQuery, 1, 1);
+      if (randomPosts.length > 0) {
+        setSelectedPost(randomPosts[0]);
+        info('Loaded a random post!');
+      }
+    } catch (err) {
+      showError('Failed to load random post');
+    } finally {
+      setLoading(false);
+    }
+  }, [settings, info, showError]);
 
   // Autocomplete
   useEffect(() => {
@@ -149,9 +245,20 @@ export default function App() {
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
+    if (query.trim()) {
+      addToHistory(query.trim());
+    }
     setHasMore(true);
     fetchPosts(true);
     setShowSuggestions(false);
+    setShowHistory(false);
+  };
+
+  const handleHistorySelect = (historyQuery: string) => {
+    setQuery(historyQuery);
+    setShowHistory(false);
+    setHasMore(true);
+    setTimeout(() => fetchPosts(true), 0);
   };
 
   const handleTagClick = (tagName: string) => {
@@ -204,13 +311,29 @@ export default function App() {
               onChange={(e) => {
                 setQuery(e.target.value);
                 setShowSuggestions(true);
+                setShowHistory(false);
+              }}
+              onFocus={() => {
+                setSearchFocused(true);
+                if (!query && history.length > 0) {
+                  setShowHistory(true);
+                }
+              }}
+              onBlur={() => {
+                setSearchFocused(false);
+                // Delay hiding to allow clicks
+                setTimeout(() => {
+                  setShowHistory(false);
+                  setShowSuggestions(false);
+                }, 200);
               }}
               placeholder={tab === 'favorites' ? 'Filter favorites...' : 'Search tags... (e.g. rating:s fox)'}
               className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border-transparent focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-e6-light rounded-lg transition-all outline-none"
             />
 
+            {/* Tag suggestions */}
             {suggestions.length > 0 && showSuggestions && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 overflow-hidden max-h-60 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 overflow-hidden max-h-60 overflow-y-auto z-50">
                 {suggestions.map((tag) => (
                   <button
                     key={tag.id}
@@ -224,11 +347,28 @@ export default function App() {
                 ))}
               </div>
             )}
+
+            {/* Search history */}
+            <SearchHistory
+              history={history}
+              onSelect={handleHistorySelect}
+              onRemove={removeFromHistory}
+              onClear={clearHistory}
+              visible={showHistory && !query && searchFocused}
+            />
           </form>
+
+          {/* Quick actions */}
+          <QuickActions
+            onRandom={fetchRandomPost}
+            onRefresh={() => fetchPosts(true)}
+            loading={loading}
+          />
 
           <button
             onClick={() => setSettingsOpen(true)}
             className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            title="Settings (S)"
           >
             <i className="fas fa-cog text-xl" />
           </button>
@@ -237,7 +377,19 @@ export default function App() {
 
       {/* Main */}
       <main className="flex-1 container mx-auto px-4 py-6">
-        <TabBar active={tab} onChange={(t) => { handleTabChange(t); setPage(1); }} settings={settings} />
+        <div className="flex items-center justify-between mb-6">
+          <TabBar active={tab} onChange={(t) => { handleTabChange(t); setPage(1); }} settings={settings} />
+          <div className="hidden md:flex items-center gap-4">
+            <ViewModeToggle viewMode={viewMode} onChange={setViewMode} />
+            <button
+              onClick={() => setShortcutsHelpOpen(true)}
+              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              title="Keyboard shortcuts (?)"
+            >
+              <i className="fas fa-keyboard" />
+            </button>
+          </div>
+        </div>
 
         {error && (
           <ErrorBanner
@@ -247,22 +399,47 @@ export default function App() {
           />
         )}
 
-        {/* Masonry grid */}
-        <div className="flex gap-4 items-start">
-          {columns.map((col, i) => (
-            <div key={i} className="flex-1 flex flex-col gap-4 min-w-0">
-              {col.map((post) => (
-                <PostCard key={post.id} post={post} settings={settings} onClick={setSelectedPost} />
-              ))}
-            </div>
-          ))}
-        </div>
+        {/* Posts display */}
+        {viewMode === 'list' ? (
+          /* List view */
+          <div className="flex flex-col gap-4">
+            {posts.filter((p) => !isPostBlacklisted(p, settings.blacklistedTags)).map((post) => (
+              <PostListItem key={post.id} post={post} settings={settings} onClick={setSelectedPost} />
+            ))}
+          </div>
+        ) : viewMode === 'compact' ? (
+          /* Compact grid view */
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+            {posts.filter((p) => !isPostBlacklisted(p, settings.blacklistedTags)).map((post) => (
+              <CompactCard key={post.id} post={post} settings={settings} onClick={setSelectedPost} />
+            ))}
+          </div>
+        ) : (
+          /* Masonry grid view (default) */
+          <div className="flex gap-4 items-start">
+            {columns.map((col, i) => (
+              <div key={i} className="flex-1 flex flex-col gap-4 min-w-0">
+                {col.map((post) => (
+                  <PostCard key={post.id} post={post} settings={settings} onClick={setSelectedPost} />
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Empty state */}
         {!loading && posts.length === 0 && !error && (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
             <i className="fas fa-folder-open text-4xl mb-4" />
             <p>No posts found.</p>
+            {query && (
+              <button
+                onClick={() => { setQuery(''); fetchPosts(true); }}
+                className="mt-4 px-4 py-2 bg-e6-light text-white rounded-lg hover:bg-e6-base transition-colors"
+              >
+                Clear Search
+              </button>
+            )}
           </div>
         )}
 
@@ -299,6 +476,15 @@ export default function App() {
         }}
       />
 
+      {/* Keyboard shortcuts help */}
+      <KeyboardShortcutsHelp
+        isOpen={shortcutsHelpOpen}
+        onClose={() => setShortcutsHelpOpen(false)}
+      />
+
+      {/* Toast notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+
       {/* Mobile navigation */}
       <MobileNav active={tab} onTabChange={setTab} onSettings={() => setSettingsOpen(true)} settings={settings} />
     </div>
@@ -311,7 +497,7 @@ function TabBar({ active, onChange, settings }: { active: Tab; onChange: (t: Tab
   const activeAccount = getActiveAccount(settings);
   const isLoggedIn = !!(activeAccount?.username && activeAccount?.apiKey);
   return (
-    <nav className="flex mb-6 space-x-4">
+    <nav className="flex space-x-4">
       <TabButton active={active === 'home'} icon="fa-home" label="Browse" onClick={() => onChange('home')} />
       {isLoggedIn && (
         <TabButton active={active === 'favorites'} icon="fa-heart" label="Favorites" onClick={() => onChange('favorites')} />
@@ -426,5 +612,57 @@ function MobileNavItem({
       <i className={`fas ${icon} text-xl mb-1`} />
       <span className="text-xs">{label}</span>
     </button>
+  );
+}
+
+/* Compact card for dense grid view */
+function CompactCard({ post, settings, onClick }: { key?: Key; post: Post; settings: Settings; onClick: (post: Post) => void }) {
+  const isSafe = post.rating === 's';
+  const shouldBlur = settings.safeMode && !isSafe;
+  const isVideo = ['webm', 'mp4'].includes(post.file.ext);
+  const borderColor = {
+    s: 'border-green-500',
+    q: 'border-yellow-500',
+    e: 'border-red-500',
+  }[post.rating] ?? 'border-gray-500';
+
+  return (
+    <div
+      className={cn(
+        'aspect-square relative overflow-hidden rounded-md cursor-pointer',
+        'bg-gray-200 dark:bg-gray-700 border-2 group',
+        borderColor
+      )}
+      onClick={() => onClick(post)}
+    >
+      {post.preview.url ? (
+        <img
+          src={post.preview.url}
+          alt={`Post ${post.id}`}
+          loading="lazy"
+          className={cn(
+            'w-full h-full object-cover transition-transform group-hover:scale-105',
+            shouldBlur && 'blur-lg group-hover:blur-0'
+          )}
+        />
+      ) : (
+        <div className="flex items-center justify-center w-full h-full text-gray-500">
+          <i className="fas fa-image text-xl" />
+        </div>
+      )}
+      
+      {isVideo && (
+        <span className="absolute top-1 left-1 bg-black/60 text-white px-1 py-0.5 rounded text-xs">
+          <i className="fas fa-play" />
+        </span>
+      )}
+      
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex justify-between text-white text-xs">
+          <span><i className="fas fa-heart" /> {post.fav_count}</span>
+          <span><i className="fas fa-arrow-up" /> {post.score.total}</span>
+        </div>
+      </div>
+    </div>
   );
 }
