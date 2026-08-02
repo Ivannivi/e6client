@@ -7,12 +7,11 @@ interface Props {
   loading?: boolean;
 }
 
-/* Random-post is promoted to a FAB on mobile (see App.tsx); keep it here for desktop only. */
 export function QuickActions({ onRandom, onRefresh, loading }: Props) {
   return (
     <div className="flex gap-1">
       <Ripple
-        className="hidden md:block rounded-full text-on-surface-variant"
+        className="rounded-full text-on-surface-variant"
         onClick={onRandom}
         disabled={loading}
       >

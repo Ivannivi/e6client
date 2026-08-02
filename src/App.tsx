@@ -525,17 +525,6 @@ export default function App() {
       {/* Toast notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
-      {/* Random post FAB (mobile only - desktop keeps it in the top app bar) */}
-      <Ripple
-        className="md:hidden fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] rounded-lg bg-primary-container text-on-primary-container shadow-elevation-3 z-30"
-        onClick={fetchRandomPost}
-        disabled={loading}
-      >
-        <span className="flex items-center justify-center w-14 h-14" title="Random Post (X)">
-          <i className={cn('fas fa-random text-xl', loading && 'opacity-50')} />
-        </span>
-      </Ripple>
-
       {/* Mobile navigation */}
       <MobileNav active={tab} onTabChange={handleTabChange} onSettings={() => setSettingsOpen(true)} settings={settings} />
     </div>
