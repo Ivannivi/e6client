@@ -160,15 +160,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Read version from package.json
+        id: pkg
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if this version was already released
+        id: tag_check
+        run: |
+          if git rev-parse "v${{ steps.pkg.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Download all artifacts
+        if: steps.tag_check.outputs.exists == 'false'
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
       - name: List downloaded artifacts
+        if: steps.tag_check.outputs.exists == 'false'
         run: find artifacts -type f
 
       - name: Generate release notes
+        if: steps.tag_check.outputs.exists == 'false'
         run: |
           echo "## 🚀 E6 Web Client Release" > release_notes.md
           echo "" >> release_notes.md
@@ -192,10 +208,11 @@ jobs:
           echo "- Branch: ${{ github.ref_name }}" >> release_notes.md
 
       - name: Create Release
+        if: steps.tag_check.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}.${{ github.run_attempt }}
-          name: Release v${{ github.run_number }}.${{ github.run_attempt }}
+          tag_name: v${{ steps.pkg.outputs.version }}
+          name: v${{ steps.pkg.outputs.version }}
           body_path: release_notes.md
           files: |
             artifacts/android-apk/*
