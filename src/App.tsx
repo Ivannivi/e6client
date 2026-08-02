@@ -22,6 +22,8 @@ import {
   useViewMode,
 } from './hooks';
 import { isPostBlacklisted, distributeToColumns, cn } from './utils';
+import { TAG_STYLES } from './config';
+import { Ripple } from './components/Ripple';
 
 type Tab = 'home' | 'favorites';
 
@@ -289,20 +291,20 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col pb-16 md:pb-0">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-md pt-[env(safe-area-inset-top)]">
+    <div className="min-h-screen bg-surface text-on-surface flex flex-col pb-24 md:pb-0">
+      {/* Top app bar */}
+      <header className="sticky top-0 z-40 bg-surface-container border-b border-outline-variant/40 pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 flex items-center gap-4">
           <button className="flex items-center gap-2 cursor-pointer" onClick={goHome}>
-            <div className="w-8 h-8 bg-e6-base rounded-md flex items-center justify-center text-white font-bold">
+            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-on-primary font-bold">
               e6
             </div>
-            <h1 className="text-xl font-bold hidden sm:block text-e6-base dark:text-e6-light">Client</h1>
+            <h1 className="text-xl font-bold hidden sm:block text-on-surface">Client</h1>
           </button>
 
           <form onSubmit={handleSearch} className="flex-1 relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i className="fas fa-search text-gray-400" />
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <i className="fas fa-search text-on-surface-variant" />
             </div>
             <input
               id="search-input"
@@ -328,21 +330,21 @@ export default function App() {
                 }, 200);
               }}
               placeholder={tab === 'favorites' ? 'Filter favorites...' : 'Search tags... (e.g. rating:s fox)'}
-              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border-transparent focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-e6-light rounded-lg transition-all outline-none"
+              className="w-full pl-11 pr-4 py-2.5 bg-surface-container-highest text-on-surface placeholder:text-on-surface-variant border-transparent focus:ring-2 focus:ring-primary rounded-full transition-all outline-none"
             />
 
             {/* Tag suggestions */}
             {suggestions.length > 0 && showSuggestions && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 overflow-hidden max-h-60 overflow-y-auto z-50">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container rounded-md shadow-elevation-2 border border-outline-variant/40 overflow-hidden max-h-60 overflow-y-auto z-50">
                 {suggestions.map((tag) => (
                   <button
                     key={tag.id}
                     type="button"
-                    className="w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center"
+                    className="w-full px-4 py-2 hover:bg-surface-container-high cursor-pointer flex justify-between items-center"
                     onClick={() => handleTagClick(tag.name)}
                   >
-                    <span className="font-medium">{tag.name}</span>
-                    <span className="text-xs text-gray-500">{tag.post_count}</span>
+                    <span className="font-medium text-on-surface">{tag.name}</span>
+                    <span className="text-xs text-on-surface-variant">{tag.post_count}</span>
                   </button>
                 ))}
               </div>
@@ -365,29 +367,31 @@ export default function App() {
             loading={loading}
           />
 
-          <button
+          <Ripple
+            className="rounded-full text-on-surface-variant"
             onClick={() => setSettingsOpen(true)}
-            className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-            title="Settings (S)"
           >
-            <i className="fas fa-cog text-xl" />
-          </button>
+            <span className="flex items-center justify-center w-10 h-10" title="Settings (S)">
+              <i className="fas fa-cog text-xl" />
+            </span>
+          </Ripple>
         </div>
       </header>
 
       {/* Main */}
       <main className="flex-1 container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="hidden md:flex items-center justify-between mb-6">
           <TabBar active={tab} onChange={(t) => { handleTabChange(t); setPage(1); }} settings={settings} />
-          <div className="hidden md:flex items-center gap-4">
+          <div className="flex items-center gap-4">
             <ViewModeToggle viewMode={viewMode} onChange={setViewMode} />
-            <button
+            <Ripple
+              className="rounded-full text-on-surface-variant"
               onClick={() => setShortcutsHelpOpen(true)}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-              title="Keyboard shortcuts (?)"
             >
-              <i className="fas fa-keyboard" />
-            </button>
+              <span className="flex items-center justify-center w-10 h-10" title="Keyboard shortcuts (?)">
+                <i className="fas fa-keyboard" />
+              </span>
+            </Ripple>
           </div>
         </div>
 
@@ -429,16 +433,16 @@ export default function App() {
 
         {/* Empty state */}
         {!loading && posts.length === 0 && !error && (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+          <div className="flex flex-col items-center justify-center py-20 text-on-surface-variant">
             <i className="fas fa-folder-open text-4xl mb-4" />
             <p>No posts found.</p>
             {query && (
-              <button
+              <Ripple
+                className="mt-4 rounded-full bg-primary text-on-primary"
                 onClick={() => { setQuery(''); fetchPosts(true); }}
-                className="mt-4 px-4 py-2 bg-e6-light text-white rounded-lg hover:bg-e6-base transition-colors"
               >
-                Clear Search
-              </button>
+                <span className="block px-5 py-2.5 font-medium">Clear Search</span>
+              </Ripple>
             )}
           </div>
         )}
@@ -446,12 +450,12 @@ export default function App() {
         {/* Loader / End indicator */}
         <div ref={loaderRef} className="py-8 flex justify-center w-full">
           {loading && (
-            <div className="flex items-center text-e6-light font-bold">
+            <div className="flex items-center text-primary font-bold">
               <i className="fas fa-spinner fa-spin mr-2 text-xl" /> Loading more...
             </div>
           )}
           {!hasMore && posts.length > 0 && !loading && (
-            <p className="text-gray-500 text-sm">You've reached the end!</p>
+            <p className="text-on-surface-variant text-sm">You've reached the end!</p>
           )}
         </div>
       </main>
@@ -484,6 +488,17 @@ export default function App() {
 
       {/* Toast notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      {/* Random post FAB (mobile only - desktop keeps it in the top app bar) */}
+      <Ripple
+        className="md:hidden fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] rounded-lg bg-primary-container text-on-primary-container shadow-elevation-3 z-30"
+        onClick={fetchRandomPost}
+        disabled={loading}
+      >
+        <span className="flex items-center justify-center w-14 h-14" title="Random Post (X)">
+          <i className={cn('fas fa-random text-xl', loading && 'opacity-50')} />
+        </span>
+      </Ripple>
 
       {/* Mobile navigation */}
       <MobileNav active={tab} onTabChange={setTab} onSettings={() => setSettingsOpen(true)} settings={settings} />
@@ -518,18 +533,21 @@ function TabButton({
   onClick: () => void;
 }) {
   return (
-    <button
-      onClick={onClick}
+    <Ripple
       className={cn(
-        'px-4 py-2 rounded-lg font-bold transition-colors',
+        'rounded-full font-bold transition-colors',
         active
-          ? 'bg-e6-light text-white'
-          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+          ? 'bg-secondary-container text-on-secondary-container'
+          : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
       )}
+      color={active ? 'on-primary-container' : 'on-surface'}
+      onClick={onClick}
     >
-      <i className={`fas ${icon} mr-2`} />
-      {label}
-    </button>
+      <span className="block px-4 py-2">
+        <i className={`fas ${icon} mr-2`} />
+        {label}
+      </span>
+    </Ripple>
   );
 }
 
@@ -544,7 +562,7 @@ function ErrorBanner({
 }) {
   return (
     <div
-      className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 flex flex-col sm:flex-row justify-between items-center gap-4"
+      className="bg-error-container text-on-error-container px-4 py-3 rounded-md relative mb-6 flex flex-col sm:flex-row justify-between items-center gap-4"
       role="alert"
     >
       <p>
@@ -552,18 +570,12 @@ function ErrorBanner({
         {message}
       </p>
       <div className="flex gap-2">
-        <button
-          onClick={onRetry}
-          className="px-3 py-1 bg-red-200 hover:bg-red-300 rounded text-red-800 font-bold text-sm"
-        >
-          Retry
-        </button>
-        <button
-          onClick={onSettings}
-          className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-gray-800 font-bold text-sm"
-        >
-          Settings
-        </button>
+        <Ripple className="rounded-full bg-error text-on-error" onClick={onRetry}>
+          <span className="block px-3 py-1 font-bold text-sm">Retry</span>
+        </Ripple>
+        <Ripple className="rounded-full bg-surface-container-high text-on-surface" onClick={onSettings}>
+          <span className="block px-3 py-1 font-bold text-sm">Settings</span>
+        </Ripple>
       </div>
     </div>
   );
@@ -583,7 +595,7 @@ function MobileNav({
   const activeAccount = getActiveAccount(settings);
   const isLoggedIn = !!(activeAccount?.username && activeAccount?.apiKey);
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 flex justify-around py-2 z-30 pb-[env(safe-area-inset-bottom)]">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-high shadow-elevation-2 flex justify-around items-center pt-2 z-30 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
       <MobileNavItem active={active === 'home'} icon="fa-home" label="Browse" onClick={() => onTabChange('home')} />
       {isLoggedIn && (
         <MobileNavItem active={active === 'favorites'} icon="fa-heart" label="Favorites" onClick={() => onTabChange('favorites')} />
@@ -605,13 +617,25 @@ function MobileNavItem({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Ripple
+      className="rounded-2xl text-on-surface-variant"
+      color={active ? 'on-primary-container' : 'on-surface'}
       onClick={onClick}
-      className={cn('flex flex-col items-center p-2', active ? 'text-e6-light' : 'text-gray-500')}
     >
-      <i className={`fas ${icon} text-xl mb-1`} />
-      <span className="text-xs">{label}</span>
-    </button>
+      <span className="flex flex-col items-center gap-0.5 px-3 py-1.5">
+        <span
+          className={cn(
+            'flex items-center justify-center w-14 h-8 rounded-full transition-colors',
+            active && 'bg-secondary-container'
+          )}
+        >
+          <i className={cn('fas', icon, 'text-lg', active ? 'text-on-secondary-container' : 'text-on-surface-variant')} />
+        </span>
+        <span className={cn('text-xs', active ? 'text-on-surface font-medium' : 'text-on-surface-variant')}>
+          {label}
+        </span>
+      </span>
+    </Ripple>
   );
 }
 
@@ -620,49 +644,47 @@ function CompactCard({ post, settings, onClick }: { key?: Key; post: Post; setti
   const isSafe = post.rating === 's';
   const shouldBlur = settings.safeMode && !isSafe;
   const isVideo = ['webm', 'mp4'].includes(post.file.ext);
-  const borderColor = {
-    s: 'border-green-500',
-    q: 'border-yellow-500',
-    e: 'border-red-500',
-  }[post.rating] ?? 'border-gray-500';
+  const ratingDot = TAG_STYLES.ratingDot[post.rating] ?? TAG_STYLES.ratingDot.default;
 
   return (
-    <div
-      className={cn(
-        'aspect-square relative overflow-hidden rounded-md cursor-pointer',
-        'bg-gray-200 dark:bg-gray-700 border-2 group',
-        borderColor
-      )}
+    <Ripple
+      className="aspect-square rounded-sm bg-surface-container-high cursor-pointer group"
       onClick={() => onClick(post)}
     >
-      {post.preview.url ? (
-        <img
-          src={post.preview.url}
-          alt={`Post ${post.id}`}
-          loading="lazy"
-          className={cn(
-            'w-full h-full object-cover transition-transform group-hover:scale-105',
-            shouldBlur && 'blur-lg group-hover:blur-0'
-          )}
-        />
-      ) : (
-        <div className="flex items-center justify-center w-full h-full text-gray-500">
-          <i className="fas fa-image text-xl" />
-        </div>
-      )}
-      
-      {isVideo && (
-        <span className="absolute top-1 left-1 bg-black/60 text-white px-1 py-0.5 rounded text-xs">
-          <i className="fas fa-play" />
+      <div className="relative w-full h-full overflow-hidden">
+        {post.preview.url ? (
+          <img
+            src={post.preview.url}
+            alt={`Post ${post.id}`}
+            loading="lazy"
+            className={cn(
+              'w-full h-full object-cover transition-transform group-hover:scale-105',
+              shouldBlur && 'blur-lg group-hover:blur-0'
+            )}
+          />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full text-on-surface-variant">
+            <i className="fas fa-image text-xl" />
+          </div>
+        )}
+
+        <span className="absolute top-1 left-1 w-2 h-2 rounded-full ring-2 ring-black/20" aria-hidden>
+          <span className={cn('block w-full h-full rounded-full', ratingDot)} />
         </span>
-      )}
-      
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="flex justify-between text-white text-xs">
-          <span><i className="fas fa-heart" /> {post.fav_count}</span>
-          <span><i className="fas fa-arrow-up" /> {post.score.total}</span>
+
+        {isVideo && (
+          <span className="absolute top-1 right-1 bg-surface-container-highest/90 text-on-surface px-1 py-0.5 rounded-full text-xs">
+            <i className="fas fa-play" />
+          </span>
+        )}
+
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex justify-between text-white text-xs">
+            <span><i className="fas fa-heart" /> {post.fav_count}</span>
+            <span><i className="fas fa-arrow-up" /> {post.score.total}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </Ripple>
   );
 }

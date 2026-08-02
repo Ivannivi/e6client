@@ -46,11 +46,11 @@ export const TAG_STYLES = {
     lore: 'text-purple-600 dark:text-purple-400',
     invalid: 'text-red-600 dark:text-red-400',
   },
-  rating: {
-    s: 'border-green-500',
-    q: 'border-yellow-500',
-    e: 'border-red-500',
-    default: 'border-gray-500',
+  ratingDot: {
+    s: 'bg-green-500',
+    q: 'bg-amber-500',
+    e: 'bg-red-500',
+    default: 'bg-outline',
   } as Record<string, string>,
 } as const;
 

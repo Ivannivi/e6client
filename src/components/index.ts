@@ -7,3 +7,4 @@ export { SearchHistory } from './SearchHistory';
 export { ViewModeToggle } from './ViewModeToggle';
 export { QuickActions } from './QuickActions';
 export { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+export { Ripple } from './Ripple';
