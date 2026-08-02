@@ -3,6 +3,7 @@ import type { Settings, Account } from '../types';
 import { getActiveAccount, createAccount } from '../types';
 import { api } from '../services/api';
 import { cn } from '../utils';
+import { Ripple } from './Ripple';
 
 interface Props {
   isOpen: boolean;
@@ -158,17 +159,17 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-surface-container rounded-xl shadow-elevation-3 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <header className="p-6 border-b dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 z-10">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Settings</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+        <header className="p-6 border-b border-outline-variant/40 flex justify-between items-center bg-surface-container z-10">
+          <h2 className="text-2xl font-bold text-on-surface">Settings</h2>
+          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface">
             <i className="fas fa-times text-xl" />
           </button>
         </header>
 
         {/* Tabs */}
-        <nav className="flex border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+        <nav className="flex border-b border-outline-variant/40 bg-surface-container-low">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -176,8 +177,8 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
               className={cn(
                 'flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors border-b-2',
                 activeTab === tab.id
-                  ? 'border-e6-light text-e6-light bg-white dark:bg-gray-800'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  ? 'border-primary text-primary bg-surface-container'
+                  : 'border-transparent text-on-surface-variant hover:text-on-surface'
               )}
             >
               <i className={`fas ${tab.icon}`} />
@@ -187,7 +188,7 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
         </nav>
 
         {/* Content */}
-        <div className="p-6 space-y-6 flex-1 overflow-y-auto bg-white dark:bg-gray-800 min-h-[350px]">
+        <div className="p-6 space-y-6 flex-1 overflow-y-auto bg-surface-container min-h-[350px]">
           {activeTab === 'account' && (
             <AccountTab
               settings={local}
@@ -222,19 +223,19 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
         </div>
 
         {/* Footer */}
-        <footer className="p-6 border-t dark:border-gray-700 flex justify-end bg-gray-50 dark:bg-gray-800 rounded-b-xl sticky bottom-0 z-10">
+        <footer className="p-6 border-t border-outline-variant/40 flex justify-end bg-surface-container-low rounded-b-xl sticky bottom-0 z-10">
           <button
             onClick={onClose}
-            className="px-4 py-2 mr-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
+            className="px-4 py-2 mr-2 text-on-surface-variant hover:text-on-surface"
           >
             Cancel
           </button>
-          <button
+          <Ripple
+            className="rounded-full bg-primary text-on-primary shadow-elevation-1"
             onClick={handleSave}
-            className="px-6 py-2 bg-e6-light hover:bg-e6-base text-white rounded-lg shadow-lg transform active:scale-95 transition-all"
           >
-            Save Changes
-          </button>
+            <span className="block px-6 py-2 font-medium">Save Changes</span>
+          </Ripple>
         </footer>
       </div>
     </div>
@@ -246,7 +247,7 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
 function Toggle({
   enabled,
   onToggle,
-  color = 'bg-e6-light',
+  color = 'bg-primary',
 }: {
   enabled: boolean;
   onToggle: () => void;
@@ -255,7 +256,7 @@ function Toggle({
   return (
     <button
       onClick={onToggle}
-      className={cn('relative w-12 h-6 rounded-full transition-colors duration-200', enabled ? color : 'bg-gray-400')}
+      className={cn('relative w-12 h-6 rounded-full transition-colors duration-200', enabled ? color : 'bg-outline')}
     >
       <div
         className={cn(
@@ -333,12 +334,12 @@ function AccountTab({
     return (
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold dark:text-white">
+          <h3 className="text-lg font-bold text-on-surface">
             {settings.accounts.find((a) => a.id === editingAccount.id) ? 'Edit Account' : 'New Account'}
           </h3>
           <button
             onClick={() => setEditingAccount(null)}
-            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            className="text-on-surface-variant hover:text-on-surface"
           >
             <i className="fas fa-arrow-left mr-2" />
             Back
@@ -347,49 +348,49 @@ function AccountTab({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-on-surface-variant mb-1">
               Account Name
             </label>
             <input
               type="text"
               value={editingAccount.name}
               onChange={(e) => setEditingAccount({ ...editingAccount, name: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-e6-light outline-none"
+              className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
               placeholder="My Account"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-on-surface-variant mb-1">
               Host URL
             </label>
             <input
               type="text"
               value={editingAccount.hostUrl}
               onChange={(e) => setEditingAccount({ ...editingAccount, hostUrl: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-e6-light outline-none"
+              className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
               placeholder="https://e621.net"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-on-surface-variant mt-1">
               e.g., https://e621.net or https://e926.net
             </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-on-surface-variant mb-1">
                 Username
               </label>
               <input
                 type="text"
                 value={editingAccount.username}
                 onChange={(e) => setEditingAccount({ ...editingAccount, username: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-e6-light outline-none"
+                className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
                 placeholder="e.g. user123"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-on-surface-variant mb-1">
                 API Key
               </label>
               <div className="relative">
@@ -397,12 +398,12 @@ function AccountTab({
                   type={showKey ? 'text' : 'password'}
                   value={editingAccount.apiKey}
                   onChange={(e) => setEditingAccount({ ...editingAccount, apiKey: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-e6-light outline-none pr-10"
+                  className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none pr-10"
                   placeholder="****************"
                 />
                 <button
                   onClick={() => setShowKey((v) => !v)}
-                  className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  className="absolute right-3 top-2.5 text-on-surface-variant hover:text-on-surface"
                 >
                   <i className={`fas ${showKey ? 'fa-eye-slash' : 'fa-eye'}`} />
                 </button>
@@ -410,8 +411,8 @@ function AccountTab({
             </div>
           </div>
 
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
-            <p className="text-xs text-blue-700 dark:text-blue-200">
+          <div className="bg-secondary-container/50 p-3 rounded-md border border-secondary/30">
+            <p className="text-xs text-on-secondary-container">
               <i className="fas fa-info-circle mr-1" />
               API Key is found in your e621 Account Settings &gt; API.
             </p>
@@ -421,16 +422,13 @@ function AccountTab({
         <div className="flex justify-end gap-2 pt-4">
           <button
             onClick={() => setEditingAccount(null)}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-300"
+            className="px-4 py-2 text-on-surface-variant hover:text-on-surface"
           >
             Cancel
           </button>
-          <button
-            onClick={handleSaveAccount}
-            className="px-4 py-2 bg-e6-light hover:bg-e6-base text-white rounded-lg"
-          >
-            Save Account
-          </button>
+          <Ripple className="rounded-full bg-primary text-on-primary" onClick={handleSaveAccount}>
+            <span className="block px-4 py-2">Save Account</span>
+          </Ripple>
         </div>
       </div>
     );
@@ -439,26 +437,22 @@ function AccountTab({
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold dark:text-white">Accounts</h3>
-        <button
-          onClick={handleAddAccount}
-          className="px-3 py-1.5 bg-e6-light hover:bg-e6-base text-white rounded-lg text-sm"
-        >
-          <i className="fas fa-plus mr-2" />
-          Add Account
-        </button>
+        <h3 className="text-lg font-bold text-on-surface">Accounts</h3>
+        <Ripple className="rounded-full bg-primary text-on-primary" onClick={handleAddAccount}>
+          <span className="block px-3 py-1.5 text-sm">
+            <i className="fas fa-plus mr-2" />
+            Add Account
+          </span>
+        </Ripple>
       </div>
 
       {settings.accounts.length === 0 ? (
-        <div className="bg-gray-50 dark:bg-gray-900 border dark:border-gray-700 rounded-lg p-8 text-center">
-          <i className="fas fa-user-plus text-4xl text-gray-400 mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 mb-4">No accounts configured</p>
-          <button
-            onClick={handleAddAccount}
-            className="px-4 py-2 bg-e6-light hover:bg-e6-base text-white rounded-lg"
-          >
-            Add Your First Account
-          </button>
+        <div className="bg-surface-container-low border border-outline-variant/40 rounded-lg p-8 text-center">
+          <i className="fas fa-user-plus text-4xl text-on-surface-variant mb-4" />
+          <p className="text-on-surface-variant mb-4">No accounts configured</p>
+          <Ripple className="inline-block rounded-full bg-primary text-on-primary" onClick={handleAddAccount}>
+            <span className="block px-4 py-2">Add Your First Account</span>
+          </Ripple>
         </div>
       ) : (
         <div className="space-y-3">
@@ -468,28 +462,28 @@ function AccountTab({
               className={cn(
                 'p-4 rounded-lg border transition-colors',
                 account.id === settings.activeAccountId
-                  ? 'bg-e6-light/10 border-e6-light dark:bg-e6-light/20'
-                  : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700'
+                  ? 'bg-primary/10 border-primary'
+                  : 'bg-surface-container-low border-outline-variant/40'
               )}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={cn(
-                    'w-10 h-10 rounded-full flex items-center justify-center text-white font-bold',
-                    account.id === settings.activeAccountId ? 'bg-e6-light' : 'bg-gray-400'
+                    'w-10 h-10 rounded-full flex items-center justify-center font-bold',
+                    account.id === settings.activeAccountId ? 'bg-primary text-on-primary' : 'bg-outline text-white'
                   )}>
                     {account.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium dark:text-white">{account.name}</span>
+                      <span className="font-medium text-on-surface">{account.name}</span>
                       {account.id === settings.activeAccountId && (
-                        <span className="text-xs bg-e6-light text-white px-2 py-0.5 rounded-full">
+                        <span className="text-xs bg-primary text-on-primary px-2 py-0.5 rounded-full">
                           Active
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <div className="text-xs text-on-surface-variant">
                       {account.username || 'No username'} • {new URL(account.hostUrl).hostname}
                     </div>
                   </div>
@@ -498,7 +492,7 @@ function AccountTab({
                   {account.id !== settings.activeAccountId && (
                     <button
                       onClick={() => handleSetActive(account.id)}
-                      className="p-2 text-gray-500 hover:text-e6-light"
+                      className="p-2 text-on-surface-variant hover:text-primary"
                       title="Set as active"
                     >
                       <i className="fas fa-check-circle" />
@@ -506,14 +500,14 @@ function AccountTab({
                   )}
                   <button
                     onClick={() => handleEditAccount(account)}
-                    className="p-2 text-gray-500 hover:text-blue-500"
+                    className="p-2 text-on-surface-variant hover:text-primary"
                     title="Edit"
                   >
                     <i className="fas fa-edit" />
                   </button>
                   <button
                     onClick={() => handleDeleteAccount(account.id)}
-                    className="p-2 text-gray-500 hover:text-red-500"
+                    className="p-2 text-on-surface-variant hover:text-error"
                     title="Delete"
                   >
                     <i className="fas fa-trash" />
@@ -526,8 +520,8 @@ function AccountTab({
       )}
 
       {activeAccount && (
-        <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
-          <p className="text-sm text-green-700 dark:text-green-300">
+        <div className="bg-secondary-container/50 p-3 rounded-lg border border-secondary/30">
+          <p className="text-sm text-on-secondary-container">
             <i className="fas fa-check-circle mr-2" />
             Using <strong>{activeAccount.name}</strong> ({new URL(activeAccount.hostUrl).hostname})
           </p>
@@ -559,20 +553,20 @@ function BlacklistTab({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* NSFW Toggle */}
-      <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+      <div className="flex items-center justify-between p-3 bg-error-container/40 rounded-lg border border-error/30">
         <div>
-          <span className="dark:text-gray-200 block font-medium">NSFW Mode</span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">Enable adult content (Questionable/Explicit)</span>
+          <span className="text-on-surface block font-medium">NSFW Mode</span>
+          <span className="text-xs text-on-surface-variant">Enable adult content (Questionable/Explicit)</span>
         </div>
-        <Toggle enabled={settings.nsfwEnabled} onToggle={() => onToggle('nsfwEnabled')} color="bg-red-500" />
+        <Toggle enabled={settings.nsfwEnabled} onToggle={() => onToggle('nsfwEnabled')} color="bg-error" />
       </div>
 
       {/* Safe Mode (blur) */}
       {settings.nsfwEnabled && (
-        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+        <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg">
           <div>
-            <span className="dark:text-gray-200 block font-medium">Safe Mode</span>
-            <span className="text-xs text-gray-500">Blur Explicit/Questionable posts in results</span>
+            <span className="text-on-surface block font-medium">Safe Mode</span>
+            <span className="text-xs text-on-surface-variant">Blur Explicit/Questionable posts in results</span>
           </div>
           <Toggle enabled={settings.safeMode} onToggle={() => onToggle('safeMode')} color="bg-green-500" />
         </div>
@@ -582,9 +576,9 @@ function BlacklistTab({
       <div>
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Blacklisted Tags</label>
+            <label className="block text-sm font-medium text-on-surface-variant">Blacklisted Tags</label>
             {syncing && (
-              <span className="text-xs text-e6-light">
+              <span className="text-xs text-primary">
                 <i className="fas fa-spinner fa-spin mr-1" />
                 Syncing...
               </span>
@@ -594,7 +588,7 @@ function BlacklistTab({
             <button
               onClick={onSync}
               disabled={syncing}
-              className="text-xs px-2 py-1 bg-e6-light text-white rounded hover:bg-e6-base disabled:opacity-50 flex items-center gap-1"
+              className="text-xs px-2 py-1 bg-primary text-on-primary rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-1"
               title="Refresh blacklist from account"
             >
               <i className={cn('fas fa-sync-alt', syncing && 'fa-spin')} />
@@ -603,7 +597,7 @@ function BlacklistTab({
           )}
         </div>
         {syncMsg && (
-          <p className={cn('text-xs mb-2', syncMsg.includes('failed') ? 'text-red-500' : 'text-green-500')}>
+          <p className={cn('text-xs mb-2', syncMsg.includes('failed') ? 'text-error' : 'text-green-500')}>
             <i className={cn('fas mr-1', syncMsg.includes('failed') ? 'fa-exclamation-circle' : 'fa-check-circle')} />
             {syncMsg}
           </p>
@@ -612,22 +606,22 @@ function BlacklistTab({
         <input
           type="text"
           onKeyDown={onAddTag}
-          className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white mb-2"
+          className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface mb-2"
           placeholder="Type tag and press Enter to add..."
         />
 
-        <div className="bg-gray-50 dark:bg-gray-900 border dark:border-gray-700 rounded-lg p-2 min-h-[150px] max-h-[300px] overflow-y-auto">
+        <div className="bg-surface-container-low border border-outline-variant/40 rounded-lg p-2 min-h-[150px] max-h-[300px] overflow-y-auto">
           {settings.blacklistedTags.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-4">No blacklisted tags.</p>
+            <p className="text-on-surface-variant text-sm text-center py-4">No blacklisted tags.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {settings.blacklistedTags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-2 py-1 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded text-sm flex items-center shadow-sm"
+                  className="px-2 py-1 bg-surface-container-high border border-outline-variant/40 rounded text-sm flex items-center shadow-elevation-1"
                 >
                   {tag}
-                  <button onClick={() => onRemoveTag(tag)} className="ml-2 text-red-500 hover:text-red-700">
+                  <button onClick={() => onRemoveTag(tag)} className="ml-2 text-error hover:opacity-80">
                     <i className="fas fa-times" />
                   </button>
                 </span>
@@ -653,19 +647,19 @@ function NetworkTab({
 }) {
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+      <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg">
         <div>
-          <span className="dark:text-gray-200 font-medium block">Enable Custom Proxy/Host</span>
-          <span className="text-xs text-gray-500">Route requests through a custom URL to bypass CORS</span>
+          <span className="text-on-surface font-medium block">Enable Custom Proxy/Host</span>
+          <span className="text-xs text-on-surface-variant">Route requests through a custom URL to bypass CORS</span>
         </div>
         <Toggle enabled={settings.enableProxy} onToggle={() => onToggle('enableProxy')} />
       </div>
 
       {settings.enableProxy && (
-        <div className="p-4 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900/50">
+        <div className="p-4 border border-outline-variant rounded-lg bg-surface-container-low">
           <div className="flex justify-between items-end mb-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Proxy / Base URL</label>
-            <button onClick={onApplyDemo} className="text-xs text-e6-light hover:underline">
+            <label className="block text-sm font-medium text-on-surface-variant">Proxy / Base URL</label>
+            <button onClick={onApplyDemo} className="text-xs text-primary hover:underline">
               Use Public Demo Proxy
             </button>
           </div>
@@ -673,7 +667,7 @@ function NetworkTab({
             type="text"
             value={settings.proxyUrl}
             onChange={(e) => onProxyChange(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-e6-light outline-none"
+            className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
             placeholder="http://localhost:8080 or https://corsproxy.io/?"
           />
           <p className="text-xs text-orange-500 mt-2">
@@ -695,8 +689,8 @@ function AppearanceTab({
 }) {
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-        <span className="dark:text-gray-200">Dark Mode</span>
+      <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg">
+        <span className="text-on-surface">Dark Mode</span>
         <Toggle enabled={settings.darkMode} onToggle={() => onToggle('darkMode')} />
       </div>
     </div>

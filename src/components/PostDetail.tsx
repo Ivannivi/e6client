@@ -119,7 +119,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
 
     return (
       <div className="mb-2">
-        <h4 className="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">
+        <h4 className="text-xs font-bold uppercase text-on-surface-variant mb-1">
           {category}
         </h4>
         <div className="flex flex-wrap gap-1">
@@ -135,7 +135,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
           {shouldCollapse && (
             <button
               onClick={() => toggleCategory(category)}
-              className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-bold ml-1 border rounded px-1"
+              className="text-xs text-on-surface-variant hover:text-on-surface font-bold ml-1 border border-outline-variant rounded-full px-2"
             >
               {isExpanded ? (
                 <>
@@ -156,10 +156,10 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
   };
 
   const ratingBadge = {
-    s: 'bg-green-100 text-green-800',
-    q: 'bg-yellow-100 text-yellow-800',
-    e: 'bg-red-100 text-red-800',
-  }[post.rating] ?? 'bg-gray-100 text-gray-800';
+    s: 'bg-green-600 text-white',
+    q: 'bg-amber-600 text-white',
+    e: 'bg-red-600 text-white',
+  }[post.rating] ?? 'bg-surface-container-highest text-on-surface';
 
   return (
     <div
@@ -167,7 +167,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
       onClick={onClose}
     >
       <div
-        className="w-full h-full md:w-[95vw] md:h-[90vh] bg-white dark:bg-gray-900 md:rounded-lg overflow-hidden flex flex-col md:flex-row shadow-2xl relative"
+        className="w-full h-full md:w-[95vw] md:h-[90vh] bg-surface md:rounded-lg overflow-hidden flex flex-col md:flex-row shadow-elevation-3 relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile close button - Positioned above status bar using safe area */}
@@ -202,19 +202,19 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
         </div>
 
         {/* Sidebar */}
-        <aside className="w-full md:w-[400px] h-[40vh] md:h-full bg-white dark:bg-gray-800 border-l dark:border-gray-700 flex flex-col overflow-hidden">
+        <aside className="w-full md:w-[400px] h-[40vh] md:h-full bg-surface-container border-l border-outline-variant/40 flex flex-col overflow-hidden">
           {/* Header */}
-          <header className="p-4 border-b dark:border-gray-700 flex justify-between items-start">
+          <header className="p-4 border-b border-outline-variant/40 flex justify-between items-start">
             <div>
-              <h2 className="text-lg font-bold dark:text-white">Post #{post.id}</h2>
+              <h2 className="text-lg font-bold text-on-surface">Post #{post.id}</h2>
               <div className="flex items-center gap-2 mt-1">
-                <span className={cn('text-xs font-bold px-2 py-0.5 rounded', ratingBadge)}>
+                <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', ratingBadge)}>
                   {RATING.labels[post.rating]}
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-on-surface-variant">
                   by{' '}
                   <button
-                    className="font-bold text-e6-light cursor-pointer hover:underline"
+                    className="font-bold text-primary cursor-pointer hover:underline"
                     onClick={() => searchTag(`user:${uploaderName}`)}
                   >
                     {uploaderName}
@@ -224,7 +224,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
             </div>
             <button
               onClick={onClose}
-              className="hidden md:block text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              className="hidden md:block text-on-surface-variant hover:text-on-surface"
             >
               <i className="fas fa-times text-xl" />
             </button>
@@ -234,7 +234,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             <div className="p-4">
               {/* Actions */}
-              <div className="flex justify-around mb-6 pb-4 border-b dark:border-gray-700">
+              <div className="flex justify-around mb-6 pb-4 border-b border-outline-variant/40">
                 <ActionButton icon="fa-arrow-up" label={String(post.score.up)} hoverColor="text-green-500" />
                 <ActionButton
                   icon={post.is_favorited ? 'fas fa-heart' : 'far fa-heart'}
@@ -247,7 +247,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                   disabled={downloading || !post.file.url}
                   className={cn(
                     'flex flex-col items-center transition-colors relative',
-                    downloading ? 'text-blue-500' : 'text-gray-500 hover:text-blue-500',
+                    downloading ? 'text-primary' : 'text-on-surface-variant hover:text-primary',
                     !post.file.url && 'opacity-50 cursor-not-allowed'
                   )}
                 >
@@ -258,14 +258,14 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                 </button>
                 <button
                   onClick={handleShare}
-                  className="flex flex-col items-center text-gray-500 hover:text-purple-500 transition-colors relative"
+                  className="flex flex-col items-center text-on-surface-variant hover:text-tertiary transition-colors relative"
                 >
                   <i className="fas fa-share-alt text-xl mb-1" />
                   <span className="text-xs">{showCopied ? 'Copied!' : 'Share'}</span>
                 </button>
                 <button
                   onClick={handleCopyLink}
-                  className="flex flex-col items-center text-gray-500 hover:text-green-500 transition-colors"
+                  className="flex flex-col items-center text-on-surface-variant hover:text-green-500 transition-colors"
                 >
                   <i className="fas fa-link text-xl mb-1" />
                   <span className="text-xs">Copy</span>
@@ -274,7 +274,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                   href={`https://e621.net/posts/${post.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center text-gray-500 hover:text-e6-light transition-colors"
+                  className="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors"
                 >
                   <i className="fas fa-external-link-alt text-xl mb-1" />
                   <span className="text-xs">Open</span>
@@ -292,11 +292,11 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
 
               {/* Description */}
               {post.description && (
-                <div className="mt-6 pt-4 border-t dark:border-gray-700">
-                  <h4 className="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-2">
+                <div className="mt-6 pt-4 border-t border-outline-variant/40">
+                  <h4 className="text-xs font-bold uppercase text-on-surface-variant mb-2">
                     Description
                   </h4>
-                  <p className="prose dark:prose-invert text-sm max-w-none whitespace-pre-wrap font-sans text-gray-700 dark:text-gray-300 break-words">
+                  <p className="prose dark:prose-invert text-sm max-w-none whitespace-pre-wrap font-sans text-on-surface break-words">
                     {post.description}
                   </p>
                 </div>
@@ -304,15 +304,15 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
             </div>
 
             {/* Comments */}
-            <section className="bg-gray-50 dark:bg-gray-800/50 border-t dark:border-gray-700 p-4">
-              <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+            <section className="bg-surface-container-low border-t border-outline-variant/40 p-4">
+              <h3 className="text-sm font-bold text-on-surface mb-4 flex items-center">
                 <i className="fas fa-comments mr-2" /> Comments ({comments.length})
               </h3>
 
               {loadingComments ? (
-                <p className="text-center text-gray-500 py-4">Loading comments...</p>
+                <p className="text-center text-on-surface-variant py-4">Loading comments...</p>
               ) : comments.length === 0 ? (
-                <p className="text-center text-gray-400 py-4 text-sm">No comments yet.</p>
+                <p className="text-center text-on-surface-variant py-4 text-sm">No comments yet.</p>
               ) : (
                 <div className="space-y-4">
                   {comments.map(
@@ -350,7 +350,7 @@ function ActionButton({
     <button
       className={cn(
         'flex flex-col items-center transition-colors',
-        active ? hoverColor : `text-gray-500 hover:${hoverColor}`
+        active ? hoverColor : `text-on-surface-variant hover:${hoverColor}`
       )}
     >
       <i className={cn(icon.includes(' ') ? icon : `fas ${icon}`, 'text-xl mb-1')} />
@@ -373,7 +373,7 @@ function CommentItem({
         <img
           src={`https://static1.e621.net/data/avatars/${comment.creator_id}.jpg`}
           alt={comment.creator}
-          className="w-8 h-8 rounded bg-gray-300 object-cover"
+          className="w-8 h-8 rounded bg-surface-container-high object-cover"
           onError={(e) => {
             e.currentTarget.src = 'https://e621.net/images/guest.png';
             e.currentTarget.onerror = null;
@@ -383,19 +383,19 @@ function CommentItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
           <button
-            className="text-xs font-bold text-e6-light cursor-pointer hover:underline"
+            className="text-xs font-bold text-primary cursor-pointer hover:underline"
             onClick={onUserClick}
           >
             {comment.creator}
           </button>
-          <span className="text-[10px] text-gray-400">
+          <span className="text-[10px] text-on-surface-variant">
             {new Date(comment.created_at).toLocaleDateString()}
           </span>
         </div>
-        <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
+        <p className="text-sm text-on-surface whitespace-pre-wrap break-words">
           {comment.body}
         </p>
-        <div className="mt-1 flex items-center text-xs text-gray-500">
+        <div className="mt-1 flex items-center text-xs text-on-surface-variant">
           <i className="fas fa-arrow-up text-green-500 mr-1" /> {comment.score}
         </div>
       </div>

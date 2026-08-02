@@ -131,17 +131,6 @@
   --shadow-elevation-1: var(--md-elevation-1);
   --shadow-elevation-2: var(--md-elevation-2);
   --shadow-elevation-3: var(--md-elevation-3);
-
-  /*
-   * Legacy brand colors, kept only so screens not yet migrated to MD3
-   * tokens (SettingsModal, PostDetail, ViewModeToggle,
-   * KeyboardShortcutsHelp) keep rendering unchanged. New/migrated
-   * components should use the MD3 role tokens above instead.
-   */
-  --color-e6-base: #002d55;
-  --color-e6-light: #2e76b4;
-  --color-e6-dark: #001931;
-  --color-e6-accent: #fdba31;
 }
 
 /* Custom animations */

@@ -26,17 +26,17 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4"
+        className="bg-surface-container-high rounded-xl shadow-elevation-3 p-6 max-w-md w-full mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold dark:text-white flex items-center gap-2">
-            <i className="fas fa-keyboard text-e6-light" />
+          <h2 className="text-xl font-bold text-on-surface flex items-center gap-2">
+            <i className="fas fa-keyboard text-primary" />
             Keyboard Shortcuts
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            className="text-on-surface-variant hover:text-on-surface"
           >
             <i className="fas fa-times text-xl" />
           </button>
@@ -46,18 +46,18 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: Props) {
           {SHORTCUTS.map(({ key, description }) => (
             <div
               key={key}
-              className="flex items-center justify-between py-2 border-b dark:border-gray-700 last:border-0"
+              className="flex items-center justify-between py-2 border-b border-outline-variant/40 last:border-0"
             >
-              <span className="text-gray-600 dark:text-gray-300">{description}</span>
-              <kbd className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm font-mono font-bold text-gray-800 dark:text-gray-200 shadow-sm">
+              <span className="text-on-surface-variant">{description}</span>
+              <kbd className="px-3 py-1.5 bg-surface-container-highest rounded-sm text-sm font-mono font-bold text-on-surface">
                 {key}
               </kbd>
             </div>
           ))}
         </div>
 
-        <p className="mt-6 text-xs text-gray-500 dark:text-gray-400 text-center">
-          Press <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">?</kbd> anytime to show this help
+        <p className="mt-6 text-xs text-on-surface-variant text-center">
+          Press <kbd className="px-1.5 py-0.5 bg-surface-container-highest rounded-xs text-xs">?</kbd> anytime to show this help
         </p>
       </div>
     </div>
