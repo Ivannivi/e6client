@@ -17,7 +17,26 @@ permissions:
   packages: read
 
 jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Type check
+        run: npx tsc --noEmit
+
   build-android:
+    needs: typecheck
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -60,6 +79,7 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
   build-linux:
+    needs: typecheck
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -92,6 +112,7 @@ jobs:
             dist/*.tar.gz
 
   build-windows:
+    needs: typecheck
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -122,6 +143,7 @@ jobs:
             dist/*.exe
 
   build-macos:
+    needs: typecheck
     runs-on: macos-latest
     steps:
       - name: Checkout code
