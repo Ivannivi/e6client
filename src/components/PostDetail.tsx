@@ -64,9 +64,10 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
   }, []);
 
   const searchTag = useCallback((tag: string) => {
-    onClose();
+    // Forward navigation (like tapping a post), not a close - the caller
+    // pushes a new history entry so back still returns to this post.
     onSearchTag?.(tag);
-  }, [onClose, onSearchTag]);
+  }, [onSearchTag]);
 
   const handleDownload = useCallback(async () => {
     if (!post.file.url || downloading) return;

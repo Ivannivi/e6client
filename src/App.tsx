@@ -27,6 +27,17 @@ import { Ripple } from './components/Ripple';
 
 type Tab = 'home' | 'favorites';
 
+/*
+ * Navigation stack: every forward navigation (search, tag tap, tab
+ * switch, opening a post) pushes an entry here so hardware/gesture
+ * back can unwind one step at a time - Android's back contract -
+ * instead of exiting the app the moment the current screen doesn't
+ * happen to be a post detail or settings modal.
+ */
+type NavEntry =
+  | { type: 'browse'; tab: Tab; query: string }
+  | { type: 'detail'; post: Post };
+
 export default function App() {
   const { settings, updateSettings } = useSettings();
   const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
@@ -51,157 +62,30 @@ export default function App() {
   const [searchFocused, setSearchFocused] = useState(false);
 
   const loaderRef = useRef<HTMLDivElement>(null);
-  const navigationHistory = useRef<Tab[]>([]);
+  // Root entry always sits at the bottom - popping it back off means "go home", not "exit".
+  const navStack = useRef<NavEntry[]>([{ type: 'browse', tab: 'home', query: '' }]);
   const debouncedQuery = useDebounce(query, 300);
   const numCols = useColumnCount();
 
-  // Android back button handler
-  useEffect(() => {
-    // Only register on mobile (when Capacitor is available)
-    if (!window.Capacitor) return;
-
-    const { App: CapacitorApp } = window.Capacitor.Plugins;
-    
-    const handleBackButton = async () => {
-      // If detail view is open, close it
-      if (selectedPost) {
-        setSelectedPost(null);
-        return;
-      }
-      // If settings are open, close them
-      if (settingsOpen) {
-        setSettingsOpen(false);
-        return;
-      }
-      // If there's navigation history, go back
-      if (navigationHistory.current.length > 0) {
-        const previousTab = navigationHistory.current.pop()!;
-        setTab(previousTab);
-        return;
-      }
-      // Otherwise, exit the app
-      CapacitorApp.exitApp();
-    };
-
-    CapacitorApp.addListener('backButton', handleBackButton);
-    
-    return () => {
-      CapacitorApp.removeAllListeners();
-    };
-  }, [selectedPost, settingsOpen]);
-
-  // Track tab changes for back navigation
-  const handleTabChange = useCallback((newTab: Tab) => {
-    if (newTab !== tab) {
-      navigationHistory.current.push(tab);
-      setTab(newTab);
-    }
-  }, [tab]);
-
-  // Keyboard shortcuts
-  useKeyboardShortcuts([
-    {
-      key: '/',
-      action: () => document.getElementById('search-input')?.focus(),
-      description: 'Focus search',
-    },
-    {
-      key: 'r',
-      action: () => fetchPosts(true),
-      description: 'Refresh',
-    },
-    {
-      key: 'x',
-      action: () => fetchRandomPost(),
-      description: 'Random post',
-    },
-    {
-      key: 's',
-      action: () => setSettingsOpen(true),
-      description: 'Settings',
-    },
-    {
-      key: 'Escape',
-      action: () => {
-        if (selectedPost) setSelectedPost(null);
-        else if (settingsOpen) setSettingsOpen(false);
-        else if (shortcutsHelpOpen) setShortcutsHelpOpen(false);
-      },
-      description: 'Close',
-    },
-    {
-      key: 'h',
-      action: () => handleTabChange('home'),
-      description: 'Home',
-    },
-    {
-      key: 'f',
-      action: () => {
-        const activeAccount = getActiveAccount(settings);
-        if (activeAccount?.username) handleTabChange('favorites');
-      },
-      description: 'Favorites',
-    },
-    {
-      key: 'v',
-      action: toggleViewMode,
-      description: 'Toggle view',
-    },
-    {
-      key: '?',
-      action: () => setShortcutsHelpOpen(true),
-      description: 'Help',
-    },
-  ], !settingsOpen && !selectedPost);
-
-  // Random post
-  const fetchRandomPost = useCallback(async () => {
-    setLoading(true);
-    try {
-      let randomQuery = 'order:random';
-      if (!settings.nsfwEnabled) {
-        randomQuery = 'rating:s ' + randomQuery;
-      }
-      const randomPosts = await api.getPosts(settings, randomQuery, 1, 1);
-      if (randomPosts.length > 0) {
-        setSelectedPost(randomPosts[0]);
-        info('Loaded a random post!');
-      }
-    } catch (err) {
-      showError('Failed to load random post');
-    } finally {
-      setLoading(false);
-    }
-  }, [settings, info, showError]);
-
-  // Autocomplete
-  useEffect(() => {
-    if (debouncedQuery.length < 3 || !showSuggestions || tab !== 'home') {
-      setSuggestions([]);
-      return;
-    }
-    const lastTag = debouncedQuery.split(' ').pop() ?? '';
-    if (lastTag.length < 3) return;
-
-    api.searchTags(settings, lastTag).then(setSuggestions);
-  }, [debouncedQuery, showSuggestions, settings, tab]);
-
   const fetchPosts = useCallback(
-    async (reset = false) => {
+    // overrideTab/overrideQuery let navigation actions fetch with the
+    // value they're *about* to set, instead of racing setTab/setQuery's
+    // async state update (which this closure wouldn't see until next render).
+    async (reset = false, overrideTab: Tab = tab, overrideQuery: string = query) => {
       if (loading || (!reset && !hasMore)) return;
 
       setLoading(true);
       if (reset) setError(null);
 
       try {
-        let finalQuery = query;
+        let finalQuery = overrideQuery;
 
-        if (tab === 'favorites') {
+        if (overrideTab === 'favorites') {
           const activeAccount = getActiveAccount(settings);
           if (!activeAccount?.username) {
             throw new Error('Please set your username in Settings > Account to view favorites.');
           }
-          finalQuery = `fav:${activeAccount.username} ${query}`;
+          finalQuery = `fav:${activeAccount.username} ${overrideQuery}`;
         }
 
         if (!settings.nsfwEnabled) {
@@ -233,9 +117,169 @@ export default function App() {
   );
 
   useEffect(() => {
-    fetchPosts(true);
+    fetchPosts(true, 'home', '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  }, []);
+
+  // Forward navigation to a (possibly new) tab/query - search submit, tag tap, tab switch.
+  const navigate = useCallback((newTab: Tab, newQuery: string) => {
+    navStack.current.push({ type: 'browse', tab: newTab, query: newQuery });
+    setSelectedPost(null);
+    setTab(newTab);
+    setQuery(newQuery);
+    setHasMore(true);
+    fetchPosts(true, newTab, newQuery);
+  }, [fetchPosts]);
+
+  // Forward navigation into a post's detail view.
+  const openDetail = useCallback((post: Post) => {
+    navStack.current.push({ type: 'detail', post });
+    setSelectedPost(post);
+  }, []);
+
+  // One step back through the stack - used by the hardware/gesture back
+  // button, the detail view's close button, and Escape.
+  const goBack = useCallback(() => {
+    if (navStack.current.length <= 1) {
+      if (window.Capacitor) {
+        window.Capacitor.Plugins.App.exitApp();
+      }
+      return;
+    }
+
+    navStack.current.pop();
+    const top = navStack.current[navStack.current.length - 1];
+
+    if (top.type === 'detail') {
+      setSelectedPost(top.post);
+    } else {
+      setSelectedPost(null);
+      setTab(top.tab);
+      setQuery(top.query);
+      setHasMore(true);
+      fetchPosts(true, top.tab, top.query);
+    }
+  }, [fetchPosts]);
+
+  // Android back button handler
+  useEffect(() => {
+    // Only register on mobile (when Capacitor is available)
+    if (!window.Capacitor) return;
+
+    const { App: CapacitorApp } = window.Capacitor.Plugins;
+
+    const handleBackButton = async () => {
+      // If settings are open, close them (not part of the browse/detail stack)
+      if (settingsOpen) {
+        setSettingsOpen(false);
+        return;
+      }
+      if (shortcutsHelpOpen) {
+        setShortcutsHelpOpen(false);
+        return;
+      }
+      goBack();
+    };
+
+    CapacitorApp.addListener('backButton', handleBackButton);
+
+    return () => {
+      CapacitorApp.removeAllListeners();
+    };
+  }, [settingsOpen, shortcutsHelpOpen, goBack]);
+
+  // Tab switch (Browse/Favorites) keeps the current query, like the original.
+  const handleTabChange = useCallback((newTab: Tab) => {
+    navigate(newTab, query);
+  }, [navigate, query]);
+
+  // Random post
+  const fetchRandomPost = useCallback(async () => {
+    setLoading(true);
+    try {
+      let randomQuery = 'order:random';
+      if (!settings.nsfwEnabled) {
+        randomQuery = 'rating:s ' + randomQuery;
+      }
+      const randomPosts = await api.getPosts(settings, randomQuery, 1, 1);
+      if (randomPosts.length > 0) {
+        openDetail(randomPosts[0]);
+        info('Loaded a random post!');
+      }
+    } catch (err) {
+      showError('Failed to load random post');
+    } finally {
+      setLoading(false);
+    }
+  }, [settings, info, showError, openDetail]);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: '/',
+      action: () => document.getElementById('search-input')?.focus(),
+      description: 'Focus search',
+    },
+    {
+      key: 'r',
+      action: () => fetchPosts(true),
+      description: 'Refresh',
+    },
+    {
+      key: 'x',
+      action: () => fetchRandomPost(),
+      description: 'Random post',
+    },
+    {
+      key: 's',
+      action: () => setSettingsOpen(true),
+      description: 'Settings',
+    },
+    {
+      key: 'Escape',
+      action: () => {
+        if (selectedPost) goBack();
+        else if (settingsOpen) setSettingsOpen(false);
+        else if (shortcutsHelpOpen) setShortcutsHelpOpen(false);
+      },
+      description: 'Close',
+    },
+    {
+      key: 'h',
+      action: () => handleTabChange('home'),
+      description: 'Home',
+    },
+    {
+      key: 'f',
+      action: () => {
+        const activeAccount = getActiveAccount(settings);
+        if (activeAccount?.username) handleTabChange('favorites');
+      },
+      description: 'Favorites',
+    },
+    {
+      key: 'v',
+      action: toggleViewMode,
+      description: 'Toggle view',
+    },
+    {
+      key: '?',
+      action: () => setShortcutsHelpOpen(true),
+      description: 'Help',
+    },
+  ], !settingsOpen && !selectedPost);
+
+  // Autocomplete
+  useEffect(() => {
+    if (debouncedQuery.length < 3 || !showSuggestions || tab !== 'home') {
+      setSuggestions([]);
+      return;
+    }
+    const lastTag = debouncedQuery.split(' ').pop() ?? '';
+    if (lastTag.length < 3) return;
+
+    api.searchTags(settings, lastTag).then(setSuggestions);
+  }, [debouncedQuery, showSuggestions, settings, tab]);
 
   useIntersectionObserver(
     loaderRef,
@@ -250,17 +294,14 @@ export default function App() {
     if (query.trim()) {
       addToHistory(query.trim());
     }
-    setHasMore(true);
-    fetchPosts(true);
+    navigate(tab, query);
     setShowSuggestions(false);
     setShowHistory(false);
   };
 
   const handleHistorySelect = (historyQuery: string) => {
-    setQuery(historyQuery);
     setShowHistory(false);
-    setHasMore(true);
-    setTimeout(() => fetchPosts(true), 0);
+    navigate(tab, historyQuery);
   };
 
   const handleTagClick = (tagName: string) => {
@@ -273,10 +314,7 @@ export default function App() {
   };
 
   const handleTagSearch = (tag: string) => {
-    setQuery(tag);
-    handleTabChange('home');
-    setHasMore(true);
-    setTimeout(() => fetchPosts(true), 0);
+    navigate('home', tag);
   };
 
   const columns = useMemo(() => {
@@ -285,9 +323,7 @@ export default function App() {
   }, [posts, numCols, settings]);
 
   const goHome = () => {
-    setQuery('');
-    handleTabChange('home');
-    fetchPosts(true);
+    navigate('home', '');
   };
 
   return (
@@ -381,7 +417,7 @@ export default function App() {
       {/* Main */}
       <main className="flex-1 container mx-auto px-4 py-6">
         <div className="hidden md:flex items-center justify-between mb-6">
-          <TabBar active={tab} onChange={(t) => { handleTabChange(t); setPage(1); }} settings={settings} />
+          <TabBar active={tab} onChange={handleTabChange} settings={settings} />
           <div className="flex items-center gap-4">
             <ViewModeToggle viewMode={viewMode} onChange={setViewMode} />
             <Ripple
@@ -408,14 +444,14 @@ export default function App() {
           /* List view */
           <div className="flex flex-col gap-4">
             {posts.filter((p) => !isPostBlacklisted(p, settings.blacklistedTags)).map((post) => (
-              <PostListItem key={post.id} post={post} settings={settings} onClick={setSelectedPost} />
+              <PostListItem key={post.id} post={post} settings={settings} onClick={openDetail} />
             ))}
           </div>
         ) : viewMode === 'compact' ? (
           /* Compact grid view */
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2">
             {posts.filter((p) => !isPostBlacklisted(p, settings.blacklistedTags)).map((post) => (
-              <CompactCard key={post.id} post={post} settings={settings} onClick={setSelectedPost} />
+              <CompactCard key={post.id} post={post} settings={settings} onClick={openDetail} />
             ))}
           </div>
         ) : (
@@ -424,7 +460,7 @@ export default function App() {
             {columns.map((col, i) => (
               <div key={i} className="flex-1 flex flex-col gap-4 min-w-0">
                 {col.map((post) => (
-                  <PostCard key={post.id} post={post} settings={settings} onClick={setSelectedPost} />
+                  <PostCard key={post.id} post={post} settings={settings} onClick={openDetail} />
                 ))}
               </div>
             ))}
@@ -465,7 +501,7 @@ export default function App() {
         <PostDetail
           post={selectedPost}
           settings={settings}
-          onClose={() => setSelectedPost(null)}
+          onClose={goBack}
           onSearchTag={handleTagSearch}
         />
       )}
@@ -501,7 +537,7 @@ export default function App() {
       </Ripple>
 
       {/* Mobile navigation */}
-      <MobileNav active={tab} onTabChange={setTab} onSettings={() => setSettingsOpen(true)} settings={settings} />
+      <MobileNav active={tab} onTabChange={handleTabChange} onSettings={() => setSettingsOpen(true)} settings={settings} />
     </div>
   );
 }
