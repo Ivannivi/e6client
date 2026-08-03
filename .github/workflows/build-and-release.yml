@@ -177,7 +177,17 @@ jobs:
 
   build-windows:
     needs: [typecheck, test]
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: windows-latest
+            artifact: windows-x64-artifacts
+          - arch: arm64
+            runner: windows-11-arm
+            artifact: windows-arm64-artifacts
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -194,15 +204,15 @@ jobs:
       - name: Build web assets
         run: npm run build
 
-      - name: Build Windows App
-        run: npx electron-builder --win --publish=never
+      - name: Build Windows App (${{ matrix.arch }})
+        run: npx electron-builder --win --${{ matrix.arch }} --publish=never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Windows artifacts
+      - name: Upload Windows artifacts (${{ matrix.arch }})
         uses: actions/upload-artifact@v4
         with:
-          name: windows-artifacts
+          name: ${{ matrix.artifact }}
           path: |
             dist/*.exe
 
@@ -280,7 +290,8 @@ jobs:
             artifacts/android-apk/*
             artifacts/linux-x64-artifacts/*
             artifacts/linux-arm64-artifacts/*
-            artifacts/windows-artifacts/*
+            artifacts/windows-x64-artifacts/*
+            artifacts/windows-arm64-artifacts/*
             artifacts/macos-artifacts/*
           draft: false
           prerelease: false
