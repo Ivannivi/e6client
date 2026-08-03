@@ -141,7 +141,7 @@ jobs:
             runner: ubuntu-latest
             artifact: linux-x64-artifacts
           - arch: arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-latest
             artifact: linux-arm64-artifacts
     runs-on: ${{ matrix.runner }}
     steps:
