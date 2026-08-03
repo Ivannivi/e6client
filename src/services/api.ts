@@ -3,7 +3,7 @@ import type { Settings, Post, Comment, User, TagSuggestion, Score, Tags, PostFla
 import { getActiveAccount } from '../types';
 import { APP_CONFIG } from '../config';
 
-interface RawPostV2 {
+export interface RawPostV2 {
   id: number;
   created_at: string;
   updated_at: string;
@@ -40,7 +40,7 @@ interface RawPostV2 {
   tags: Tags;
 }
 
-function mapV2Post(raw: RawPostV2): Post {
+export function mapV2Post(raw: RawPostV2): Post {
   return {
     id: raw.id,
     created_at: raw.created_at,

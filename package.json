@@ -12,6 +12,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest run",
     "electron": "electron electron/main.js",
     "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron electron/main.js\"",
     "build-electron": "npm run build && electron-builder",
@@ -39,6 +40,7 @@
     "tailwindcss": "^4.1.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
+    "vitest": "^3.0.0",
     "wait-on": "^7.2.0"
   },
   "main": "electron/main.js",
