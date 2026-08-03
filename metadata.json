@@ -1,5 +1,5 @@
 {
-  "name": "E6-Web Client",
+  "name": "e6client",
   "description": "A robust, feature-rich e621 client built with React. Features masonry layout, tag search, authentication, and configurable proxy settings for network flexibility.",
   "requestFramePermissions": []
 }
