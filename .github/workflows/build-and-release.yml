@@ -133,7 +133,17 @@ jobs:
 
   build-linux:
     needs: [typecheck, test]
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-latest
+            artifact: linux-x64-artifacts
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            artifact: linux-arm64-artifacts
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -150,19 +160,20 @@ jobs:
       - name: Build web assets
         run: npm run build
 
-      - name: Build Linux App
-        run: npx electron-builder --linux --publish=never
+      - name: Build Linux App (${{ matrix.arch }})
+        run: npx electron-builder --linux --${{ matrix.arch }} --publish=never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Linux artifacts
+      - name: Upload Linux artifacts (${{ matrix.arch }})
         uses: actions/upload-artifact@v4
         with:
-          name: linux-artifacts
+          name: ${{ matrix.artifact }}
           path: |
             dist/*.deb
+            dist/*.rpm
             dist/*.AppImage
-            dist/*.tar.gz
+            dist/*.zip
 
   build-windows:
     needs: [typecheck, test]
@@ -267,7 +278,8 @@ jobs:
           generate_release_notes: true
           files: |
             artifacts/android-apk/*
-            artifacts/linux-artifacts/*
+            artifacts/linux-x64-artifacts/*
+            artifacts/linux-arm64-artifacts/*
             artifacts/windows-artifacts/*
             artifacts/macos-artifacts/*
           draft: false
