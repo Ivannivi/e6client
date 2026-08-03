@@ -46,7 +46,7 @@
   "main": "electron/main.js",
   "build": {
     "appId": "com.e6client.app",
-    "productName": "E6 Web Client",
+    "productName": "e6client",
     "directories": {
       "output": "dist"
     },

@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  name: 'E6 Client',
+  name: 'e6client',
   version: '1.0.0',
   api: {
     baseUrl: 'https://e621.net',

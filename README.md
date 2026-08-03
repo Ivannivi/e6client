@@ -1,13 +1,13 @@
-# E6 Web Client
+# e6client
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Ivannivi/e6client/main/android/app/src/main/res/drawable/ic_launcher_background.xml" alt="E6 Client Logo" width="100" height="100">
+  <img src="https://raw.githubusercontent.com/Ivannivi/e6client/main/android/app/src/main/res/drawable/ic_launcher_background.xml" alt="e6client logo" width="100" height="100">
   <h3>A beautiful, modern client for e621/e926</h3>
 </div>
 
 ## 📱 About
 
-E6 Web Client is a React-based mobile application for browsing e621 and e926 content. Built with TypeScript, Tailwind CSS, and Capacitor for native Android deployment.
+e6client is a React-based mobile application for browsing e621 and e926 content. Built with TypeScript, Tailwind CSS, and Capacitor for native Android deployment.
 
 ### ✨ Features
 
