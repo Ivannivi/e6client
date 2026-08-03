@@ -12,13 +12,12 @@ interface Props {
   onUpdate: (s: Partial<Settings>) => void;
 }
 
-type Tab = 'account' | 'network' | 'blacklist' | 'appearance';
+type Tab = 'account' | 'network' | 'blacklist';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'account', label: 'Account', icon: 'fa-user' },
   { id: 'blacklist', label: 'Blacklist', icon: 'fa-ban' },
   { id: 'network', label: 'Network', icon: 'fa-network-wired' },
-  { id: 'appearance', label: 'Display', icon: 'fa-palette' },
 ];
 
 export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
@@ -216,10 +215,6 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
               onApplyDemo={applyDemoProxy}
             />
           )}
-
-          {activeTab === 'appearance' && (
-            <AppearanceTab settings={local} onToggle={toggle} />
-          )}
         </div>
 
         {/* Footer */}
@@ -260,7 +255,7 @@ function Toggle({
     >
       <div
         className={cn(
-          'absolute top-1 w-4 h-4 rounded-full bg-white transition-transform duration-200',
+          'absolute top-1 w-4 h-4 rounded-full bg-surface transition-transform duration-200',
           enabled ? 'left-7' : 'left-1'
         )}
       />
@@ -470,7 +465,9 @@ function AccountTab({
                 <div className="flex items-center gap-3">
                   <div className={cn(
                     'w-10 h-10 rounded-full flex items-center justify-center font-bold',
-                    account.id === settings.activeAccountId ? 'bg-primary text-on-primary' : 'bg-outline text-white'
+                    account.id === settings.activeAccountId
+                      ? 'bg-primary text-on-primary'
+                      : 'bg-secondary-container text-on-secondary-container'
                   )}>
                     {account.name.charAt(0).toUpperCase()}
                   </div>
@@ -680,19 +677,3 @@ function NetworkTab({
   );
 }
 
-function AppearanceTab({
-  settings,
-  onToggle,
-}: {
-  settings: Settings;
-  onToggle: (key: keyof Settings) => void;
-}) {
-  return (
-    <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg">
-        <span className="text-on-surface">Dark Mode</span>
-        <Toggle enabled={settings.darkMode} onToggle={() => onToggle('darkMode')} />
-      </div>
-    </div>
-  );
-}

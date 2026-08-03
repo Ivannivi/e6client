@@ -51,8 +51,16 @@ export function useSettings() {
 
   useEffect(() => {
     localStorage.setItem(APP_CONFIG.storage.settingsKey, JSON.stringify(settings));
-    document.documentElement.classList.toggle('dark', settings.darkMode);
   }, [settings]);
+
+  // Follow the system color scheme; no manual toggle.
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = () => document.documentElement.classList.toggle('dark', media.matches);
+    apply();
+    media.addEventListener('change', apply);
+    return () => media.removeEventListener('change', apply);
+  }, []);
 
   const updateSettings = useCallback((updates: Partial<Settings>) => {
     setSettings((prev) => ({ ...prev, ...updates }));
