@@ -29,7 +29,7 @@ export function ToastContainer({ toasts, onRemove }: Props) {
         <div
           key={toast.id}
           className={cn(
-            'flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white animate-slide-in',
+            'flex items-center gap-3 px-4 py-3 rounded-xs shadow-elevation-3 text-white animate-slide-in',
             TOAST_COLORS[toast.type]
           )}
           onClick={() => onRemove(toast.id)}

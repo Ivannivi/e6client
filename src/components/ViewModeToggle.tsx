@@ -14,16 +14,16 @@ const VIEW_MODES: { mode: ViewMode; icon: string; label: string }[] = [
 
 export function ViewModeToggle({ viewMode, onChange }: Props) {
   return (
-    <div className="flex rounded-lg bg-gray-100 dark:bg-gray-700 p-1">
+    <div className="flex rounded-full bg-surface-container p-1">
       {VIEW_MODES.map(({ mode, icon, label }) => (
         <button
           key={mode}
           onClick={() => onChange(mode)}
           className={cn(
-            'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2',
+            'px-3 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-2',
             viewMode === mode
-              ? 'bg-white dark:bg-gray-600 text-e6-base dark:text-e6-light shadow-sm'
-              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              ? 'bg-secondary-container text-on-secondary-container'
+              : 'text-on-surface-variant hover:text-on-surface'
           )}
           title={label}
         >

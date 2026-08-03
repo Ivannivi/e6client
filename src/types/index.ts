@@ -122,7 +122,6 @@ export interface Settings {
   enableProxy: boolean;
   nsfwEnabled: boolean;
   safeMode: boolean;
-  darkMode: boolean;
   blacklistedTags: string[];
 }
 
@@ -133,7 +132,6 @@ export const createDefaultSettings = (): Settings => ({
   enableProxy: false,
   nsfwEnabled: false,
   safeMode: false,
-  darkMode: true,
   blacklistedTags: [],
 });
 

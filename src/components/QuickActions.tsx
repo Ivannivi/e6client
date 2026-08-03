@@ -1,4 +1,5 @@
 import { cn } from '../utils';
+import { Ripple } from './Ripple';
 
 interface Props {
   onRandom: () => void;
@@ -8,34 +9,25 @@ interface Props {
 
 export function QuickActions({ onRandom, onRefresh, loading }: Props) {
   return (
-    <div className="flex gap-2">
-      <button
+    <div className="flex gap-1">
+      <Ripple
+        className="rounded-full text-on-surface-variant"
         onClick={onRandom}
         disabled={loading}
-        className={cn(
-          'p-2 rounded-lg transition-colors',
-          'bg-gradient-to-r from-purple-500 to-pink-500 text-white',
-          'hover:from-purple-600 hover:to-pink-600',
-          'disabled:opacity-50 disabled:cursor-not-allowed',
-          'shadow-md hover:shadow-lg'
-        )}
-        title="Random Post (X)"
       >
-        <i className="fas fa-random" />
-      </button>
-      <button
+        <span className={cn('flex items-center justify-center w-10 h-10', loading && 'opacity-50')} title="Random Post (X)">
+          <i className="fas fa-random" />
+        </span>
+      </Ripple>
+      <Ripple
+        className="rounded-full text-on-surface-variant"
         onClick={onRefresh}
         disabled={loading}
-        className={cn(
-          'p-2 rounded-lg transition-colors',
-          'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300',
-          'hover:bg-gray-200 dark:hover:bg-gray-600',
-          'disabled:opacity-50 disabled:cursor-not-allowed'
-        )}
-        title="Refresh (R)"
       >
-        <i className={cn('fas fa-sync-alt', loading && 'animate-spin')} />
-      </button>
+        <span className={cn('flex items-center justify-center w-10 h-10', loading && 'opacity-50')} title="Refresh (R)">
+          <i className={cn('fas fa-sync-alt', loading && 'animate-spin')} />
+        </span>
+      </Ripple>
     </div>
   );
 }
