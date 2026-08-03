@@ -47,13 +47,6 @@ export function PostListItem({ post, settings, onClick }: Props) {
             </div>
           )}
 
-          <span
-            className="absolute top-1.5 left-1.5 w-2.5 h-2.5 rounded-full ring-2 ring-black/20"
-            aria-hidden
-          >
-            <span className={cn('block w-full h-full rounded-full', ratingDot)} />
-          </span>
-
           {isVideo && (
             <span className="absolute top-1 right-1 bg-surface-container-highest/90 text-on-surface px-1.5 py-0.5 rounded-full text-xs font-bold">
               {post.file.ext.toUpperCase()}
@@ -91,6 +84,10 @@ export function PostListItem({ post, settings, onClick }: Props) {
 
           {/* Stats */}
           <div className="flex items-center gap-4 text-xs text-on-surface-variant mt-2">
+            <span
+              className={cn('w-2 h-2 rounded-full flex-shrink-0', ratingDot)}
+              aria-hidden
+            />
             <span className="flex items-center gap-1">
               <i className="fas fa-heart text-tertiary" />
               {post.fav_count}

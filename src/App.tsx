@@ -693,10 +693,6 @@ function CompactCard({ post, settings, onClick }: { key?: Key; post: Post; setti
           </div>
         )}
 
-        <span className="absolute top-1 left-1 w-2 h-2 rounded-full ring-2 ring-black/20" aria-hidden>
-          <span className={cn('block w-full h-full rounded-full', ratingDot)} />
-        </span>
-
         {isVideo && (
           <span className="absolute top-1 right-1 bg-surface-container-highest/90 text-on-surface px-1 py-0.5 rounded-full text-xs">
             <i className="fas fa-play" />
@@ -705,7 +701,10 @@ function CompactCard({ post, settings, onClick }: { key?: Key; post: Post; setti
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="flex justify-between text-white text-xs">
-            <span><i className="fas fa-heart" /> {post.fav_count}</span>
+            <span className="flex items-center gap-1">
+              <span className={cn('w-2 h-2 rounded-full', ratingDot)} aria-hidden />
+              <i className="fas fa-heart" /> {post.fav_count}
+            </span>
             <span><i className="fas fa-arrow-up" /> {post.score.total}</span>
           </div>
         </div>

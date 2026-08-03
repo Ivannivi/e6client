@@ -51,13 +51,6 @@ export function PostCard({ post, settings, onClick }: Props) {
             </div>
           )}
 
-          <span
-            className="absolute top-2 left-2 w-2.5 h-2.5 rounded-full ring-2 ring-black/20 z-10"
-            aria-hidden
-          >
-            <span className={cn('block w-full h-full rounded-full', ratingDot)} />
-          </span>
-
           {isVideo && (
             <span className="absolute top-2 right-2 bg-surface-container-highest/90 text-on-surface px-2 py-0.5 rounded-full text-xs font-bold z-10">
               {post.file.ext.toUpperCase()}
@@ -72,15 +65,19 @@ export function PostCard({ post, settings, onClick }: Props) {
         </div>
 
         <footer className="p-3">
-          <div className="flex justify-between items-center text-xs text-on-surface-variant mb-1">
-            <span className="flex items-center">
+          <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+            <span
+              className={cn('w-2 h-2 rounded-full flex-shrink-0', ratingDot)}
+              aria-hidden
+            />
+            <span className="flex items-center flex-shrink-0">
               <i className="fas fa-heart text-tertiary mr-1" /> {post.fav_count}
             </span>
-            <span className="flex items-center">
+            <span className="flex items-center flex-shrink-0">
               <i className="fas fa-arrow-up text-primary mr-1" /> {post.score.total}
             </span>
+            <span className="truncate">{artists}</span>
           </div>
-          <p className="text-xs text-on-surface-variant truncate">{artists}</p>
         </footer>
       </article>
     </Ripple>
