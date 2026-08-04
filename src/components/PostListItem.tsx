@@ -51,6 +51,15 @@ export function PostListItem({ post, settings, onClick }: Props) {
               {post.file.ext.toUpperCase()}
             </span>
           )}
+
+          <div className="absolute bottom-1 left-1 flex items-center gap-1 z-10">
+            <span className={cn('flex items-center px-1 py-0.5 rounded-full text-[10px] font-bold text-white', ratingDot)}>
+              {post.rating.toUpperCase()}
+            </span>
+            <span className="flex items-center gap-0.5 px-1 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-bold">
+              <i className="fas fa-heart" /> {post.fav_count}
+            </span>
+          </div>
         </div>
 
         {/* Content */}
@@ -80,14 +89,6 @@ export function PostListItem({ post, settings, onClick }: Props) {
 
           {/* Stats */}
           <div className="flex items-center gap-4 text-xs text-on-surface-variant mt-2">
-            <span
-              className={cn('w-2 h-2 rounded-full flex-shrink-0', ratingDot)}
-              aria-hidden
-            />
-            <span className="flex items-center gap-1">
-              <i className="fas fa-heart text-tertiary" />
-              {post.fav_count}
-            </span>
             <span className="flex items-center gap-1">
               <i className="fas fa-arrow-up text-primary" />
               {post.score.total}
