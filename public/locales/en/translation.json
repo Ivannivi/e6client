@@ -120,7 +120,10 @@
     "loadingComments": "Loading comments...",
     "noComments": "No comments yet.",
     "shareTitle": "Post #{{id}}",
-    "shareText": "Check out this post by {{artist}}"
+    "shareText": "Check out this post by {{artist}}",
+    "mediaPending": "Media is being processed",
+    "mediaPendingHint": "This post is still pending and its file is not available yet.",
+    "mediaUnavailable": "Media unavailable"
   },
   "searchHistory": {
     "recent": "Recent Searches",

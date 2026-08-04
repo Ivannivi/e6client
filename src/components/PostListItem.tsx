@@ -44,8 +44,11 @@ export function PostListItem({ post, settings, onClick }: Props) {
               className={cn('w-full h-full object-cover', shouldBlur && 'blur-xl')}
             />
           ) : (
-            <div className="flex items-center justify-center w-full h-full text-on-surface-variant">
-              <i className="fas fa-image-slash text-xl" />
+            <div className="flex flex-col items-center justify-center w-full h-full text-on-surface-variant gap-1 px-1">
+              <i className="fas fa-hourglass-half text-xl" />
+              <span className="text-[10px] text-center leading-tight">
+                {t('postDetail.mediaPending')}
+              </span>
             </div>
           )}
 

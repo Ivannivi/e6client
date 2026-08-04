@@ -30,6 +30,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
 
   const thumbnailSrc = post.preview.url || post.sample.url || post.file.url || '';
   const fullSrc = post.file.url || post.sample.url || post.preview.url || '';
+  const hasMedia = Boolean(thumbnailSrc || fullSrc);
 
   useEffect(() => {
     setFullImageLoaded(false);
@@ -191,7 +192,17 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
 
         {/* Media viewer */}
         <div className="flex-1 bg-black flex items-center justify-center relative overflow-hidden group">
-          {isVideo ? (
+          {!hasMedia ? (
+            <div className="flex flex-col items-center justify-center text-center px-6 text-white/70">
+              <i className="fas fa-hourglass-half text-4xl mb-3" />
+              <p className="text-sm font-semibold">
+                {t('postDetail.mediaPending')}
+              </p>
+              <p className="text-xs mt-1 text-white/50">
+                {t('postDetail.mediaPendingHint')}
+              </p>
+            </div>
+          ) : isVideo ? (
             <video
               src={post.file.url ?? ''}
               controls
