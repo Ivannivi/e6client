@@ -48,8 +48,11 @@ export function PostCard({ post, settings, onClick }: Props) {
               )}
             />
           ) : (
-            <div className="flex items-center justify-center w-full h-full text-on-surface-variant absolute inset-0">
-              <i className="fas fa-image-slash text-2xl" />
+            <div className="flex flex-col items-center justify-center w-full h-full text-on-surface-variant absolute inset-0 gap-1 px-2">
+              <i className="fas fa-hourglass-half text-2xl" />
+              <span className="text-[10px] text-center leading-tight">
+                {t('postDetail.mediaPending')}
+              </span>
             </div>
           )}
 

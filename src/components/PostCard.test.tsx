@@ -108,14 +108,15 @@ describe('PostCard', () => {
     expect(screen.getByText('alice, bob')).toBeInTheDocument();
   });
 
-  it('shows a fallback icon when preview.url is null', () => {
+  it('shows a pending placeholder when preview.url is null', () => {
     const post = makePost();
     post.preview.url = null;
     const { container } = render(
       <PostCard post={post} settings={makeSettings()} onClick={() => {}} />,
     );
 
-    expect(container.querySelector('.fa-image-slash')).toBeInTheDocument();
+    expect(container.querySelector('.fa-hourglass-half')).toBeInTheDocument();
+    expect(screen.getByText('postDetail.mediaPending')).toBeInTheDocument();
     expect(screen.queryByAltText('Post 1')).not.toBeInTheDocument();
   });
 });
