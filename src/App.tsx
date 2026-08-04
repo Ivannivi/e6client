@@ -673,8 +673,6 @@ function MobileNavItem({
 
 /* Compact card for dense grid view */
 function CompactCard({ post, settings, onClick }: { key?: Key; post: Post; settings: Settings; onClick: (post: Post) => void }) {
-  const isSafe = post.rating === 's';
-  const shouldBlur = settings.safeMode && !isSafe;
   const isVideo = ['webm', 'mp4'].includes(post.file.ext);
   const ratingDot = TAG_STYLES.ratingDot[post.rating] ?? TAG_STYLES.ratingDot.default;
 
@@ -691,7 +689,6 @@ function CompactCard({ post, settings, onClick }: { key?: Key; post: Post; setti
             loading="lazy"
             className={cn(
               'w-full h-full object-cover transition-transform group-hover:scale-105',
-              shouldBlur && 'blur-lg group-hover:blur-0'
             )}
           />
         ) : (

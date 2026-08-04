@@ -1,6 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Settings, createDefaultSettings } from '../types';
+import { Settings, Account, createDefaultSettings, generateId } from '../types';
 import { APP_CONFIG } from '../config';
+
+function ensureGuestAccount(s: Settings): Settings {
+  if (s.accounts.length > 0) return s;
+  const guest: Account = {
+    id: generateId(),
+    name: 'e926 Guest',
+    username: '',
+    apiKey: '',
+    hostUrl: 'https://e926.net',
+  };
+  return { ...s, accounts: [guest], activeAccountId: guest.id };
+}
 
 export function useSettings() {
   const [settings, setSettings] = useState<Settings>(() => {
@@ -9,7 +21,7 @@ export function useSettings() {
       if (!stored) return createDefaultSettings();
       const parsed = JSON.parse(stored);
       const defaults = createDefaultSettings();
-      
+
       // Migration: convert old single-account format to new multi-account format
       if (parsed.username !== undefined && parsed.accounts === undefined) {
         const migratedSettings: Settings = {
@@ -17,14 +29,14 @@ export function useSettings() {
           ...parsed,
           accounts: [],
           activeAccountId: null,
-          blacklistedTags: Array.isArray(parsed.blacklistedTags) 
-            ? parsed.blacklistedTags 
+          blacklistedTags: Array.isArray(parsed.blacklistedTags)
+            ? parsed.blacklistedTags
             : defaults.blacklistedTags,
         };
         // If old format had credentials, create an account
         if (parsed.username && parsed.apiKey) {
           const account = {
-            id: crypto.randomUUID(),
+            id: generateId(),
             name: parsed.username,
             username: parsed.username,
             apiKey: parsed.apiKey,
@@ -33,17 +45,17 @@ export function useSettings() {
           migratedSettings.accounts = [account];
           migratedSettings.activeAccountId = account.id;
         }
-        return migratedSettings;
+        return ensureGuestAccount(migratedSettings);
       }
-      
-      return {
+
+      return ensureGuestAccount({
         ...defaults,
         ...parsed,
         accounts: Array.isArray(parsed.accounts) ? parsed.accounts : defaults.accounts,
-        blacklistedTags: Array.isArray(parsed.blacklistedTags) 
-          ? parsed.blacklistedTags 
+        blacklistedTags: Array.isArray(parsed.blacklistedTags)
+          ? parsed.blacklistedTags
           : defaults.blacklistedTags,
-      };
+      });
     } catch {
       return createDefaultSettings();
     }

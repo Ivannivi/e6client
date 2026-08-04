@@ -74,19 +74,10 @@ describe('PostCard', () => {
     expect(container.querySelector('.fa-images')).toBeInTheDocument();
   });
 
-  it('blurs the image when safeMode is on and rating is not s', () => {
+  it('does not blur the image regardless of rating', () => {
     const post = makePost();
     post.preview.url = 'https://example.com/preview.png';
     post.rating = 'q';
-    render(<PostCard post={post} settings={makeSettings({ safeMode: true })} onClick={() => {}} />);
-
-    expect(screen.getByAltText('Post 1')).toHaveClass('blur-xl');
-  });
-
-  it('does not blur the image when safeMode is on but rating is s', () => {
-    const post = makePost();
-    post.preview.url = 'https://example.com/preview.png';
-    post.rating = 's';
     render(<PostCard post={post} settings={makeSettings({ safeMode: true })} onClick={() => {}} />);
 
     expect(screen.getByAltText('Post 1')).not.toHaveClass('blur-xl');

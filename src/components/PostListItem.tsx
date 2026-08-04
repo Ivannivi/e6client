@@ -14,8 +14,6 @@ interface Props {
 
 export function PostListItem({ post, settings, onClick }: Props) {
   const { t } = useTranslation();
-  const isSafe = post.rating === 's';
-  const shouldBlur = settings.safeMode && !isSafe;
   const isVideo = isVideoFile(post.file.ext);
   const ratingDot = TAG_STYLES.ratingDot[post.rating] ?? TAG_STYLES.ratingDot.default;
 
@@ -41,7 +39,7 @@ export function PostListItem({ post, settings, onClick }: Props) {
               src={post.preview.url}
               alt={`Post ${post.id}`}
               loading="lazy"
-              className={cn('w-full h-full object-cover', shouldBlur && 'blur-xl')}
+              className={cn('w-full h-full object-cover')}
             />
           ) : (
             <div className="flex flex-col items-center justify-center w-full h-full text-on-surface-variant gap-1 px-1">

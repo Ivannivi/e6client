@@ -14,8 +14,6 @@ interface Props {
 
 export function PostCard({ post, settings, onClick }: Props) {
   const { t } = useTranslation();
-  const isSafe = post.rating === 's';
-  const shouldBlur = settings.safeMode && !isSafe;
   const isVideo = isVideoFile(post.file.ext);
   const ratingDot = TAG_STYLES.ratingDot[post.rating] ?? TAG_STYLES.ratingDot.default;
 
@@ -44,7 +42,6 @@ export function PostCard({ post, settings, onClick }: Props) {
               loading="lazy"
               className={cn(
                 'w-full h-full object-cover transition-all duration-300',
-                shouldBlur && 'blur-xl scale-110 group-hover:blur-0 group-hover:scale-100'
               )}
             />
           ) : (

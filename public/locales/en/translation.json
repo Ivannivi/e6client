@@ -71,8 +71,6 @@
       "saveAccount": "Save Account"
     },
     "blacklist": {
-      "safeMode": "Safe Mode",
-      "safeHint": "Blur Explicit/Questionable posts in results",
       "blacklistedTags": "Blacklisted Tags",
       "syncing": "Syncing...",
       "refresh": "Refresh",

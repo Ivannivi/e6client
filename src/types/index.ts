@@ -1,5 +1,12 @@
 export type Rating = 's' | 'q' | 'e';
 
+export function generateId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
+
 export interface FileInfo {
   width: number;
   height: number;
@@ -124,14 +131,23 @@ export interface Settings {
   blacklistedTags: string[];
 }
 
-export const createDefaultSettings = (): Settings => ({
-  accounts: [],
-  activeAccountId: null,
-  proxyUrl: 'https://corsproxy.io/?',
-  enableProxy: false,
-  safeMode: false,
-  blacklistedTags: [],
-});
+export const createDefaultSettings = (): Settings => {
+  const guestAccount: Account = {
+    id: generateId(),
+    name: 'e926 Guest',
+    username: '',
+    apiKey: '',
+    hostUrl: 'https://e926.net',
+  };
+  return {
+    accounts: [guestAccount],
+    activeAccountId: guestAccount.id,
+    proxyUrl: 'https://corsproxy.io/?',
+    enableProxy: false,
+    safeMode: false,
+    blacklistedTags: [],
+  };
+};
 
 export const getActiveAccount = (settings: Settings): Account | null => {
   if (!settings.activeAccountId) return null;
@@ -152,7 +168,7 @@ export const isSafeProvider = (hostUrl: string): boolean => {
 };
 
 export const createAccount = (partial: Partial<Account> = {}): Account => ({
-  id: crypto.randomUUID(),
+  id: generateId(),
   name: partial.name || 'New Account',
   username: partial.username || '',
   apiKey: partial.apiKey || '',

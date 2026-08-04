@@ -64,14 +64,15 @@ describe('useSettings', () => {
     expect(result.current.settings.safeMode).toBe(true);
   });
 
-  it('migrates old format without credentials into empty accounts', () => {
+  it('migrates old format without credentials into a guest e926 account', () => {
     const oldFormat = { username: '', apiKey: '', safeMode: false };
     localStorage.setItem('e6-settings', JSON.stringify(oldFormat));
 
     const { result } = renderHook(() => useSettings());
 
-    expect(result.current.settings.accounts).toEqual([]);
-    expect(result.current.settings.activeAccountId).toBeNull();
+    expect(result.current.settings.accounts).toHaveLength(1);
+    expect(result.current.settings.accounts[0].hostUrl).toBe('https://e926.net');
+    expect(result.current.settings.activeAccountId).toBe(result.current.settings.accounts[0].id);
   });
 
   it('loads existing multi-account settings from localStorage', () => {
@@ -102,5 +103,22 @@ describe('useSettings', () => {
     localStorage.setItem('e6-settings', JSON.stringify(stored));
     const { result } = renderHook(() => useSettings());
     expect(Array.isArray(result.current.settings.blacklistedTags)).toBe(true);
+  });
+
+  it('creates a guest e926 account when stored settings have no accounts', () => {
+    const stored = {
+      accounts: [],
+      activeAccountId: null,
+      proxyUrl: 'https://corsproxy.io/?',
+      enableProxy: false,
+      safeMode: false,
+      blacklistedTags: [],
+    };
+    localStorage.setItem('e6-settings', JSON.stringify(stored));
+    const { result } = renderHook(() => useSettings());
+
+    expect(result.current.settings.accounts).toHaveLength(1);
+    expect(result.current.settings.accounts[0].hostUrl).toBe('https://e926.net');
+    expect(result.current.settings.activeAccountId).toBe(result.current.settings.accounts[0].id);
   });
 });
