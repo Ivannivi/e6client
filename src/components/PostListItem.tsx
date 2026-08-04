@@ -1,4 +1,5 @@
 import type { Key } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Post, Settings } from '../types';
 import { TAG_STYLES } from '../config';
 import { isVideoFile, formatFileSize, cn } from '../utils';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function PostListItem({ post, settings, onClick }: Props) {
+  const { t } = useTranslation();
   const isSafe = post.rating === 's';
   const shouldBlur = settings.safeMode && !isSafe;
   const isVideo = isVideoFile(post.file.ext);
@@ -19,7 +21,7 @@ export function PostListItem({ post, settings, onClick }: Props) {
 
   const artists = post.tags.artist.length > 0
     ? post.tags.artist.join(', ')
-    : 'Unknown Artist';
+    : t('postCard.unknownArtist');
 
   const topTags = [
     ...post.tags.character.slice(0, 2),
@@ -66,7 +68,7 @@ export function PostListItem({ post, settings, onClick }: Props) {
               </span>
             </div>
             <p className="text-xs text-on-surface-variant truncate mb-2">
-              by {artists}
+              {t('postList.byArtist', { artist: artists })}
             </p>
             {topTags.length > 0 && (
               <div className="flex flex-wrap gap-1">

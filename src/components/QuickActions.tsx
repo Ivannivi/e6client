@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { cn } from '../utils';
 import { Ripple } from './Ripple';
 
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function QuickActions({ onRandom, onRefresh, loading }: Props) {
+  const { t } = useTranslation();
   return (
     <div className="flex gap-1">
       <Ripple
@@ -15,7 +17,7 @@ export function QuickActions({ onRandom, onRefresh, loading }: Props) {
         onClick={onRandom}
         disabled={loading}
       >
-        <span className={cn('flex items-center justify-center w-10 h-10', loading && 'opacity-50')} title="Random Post (X)">
+        <span className={cn('flex items-center justify-center w-10 h-10', loading && 'opacity-50')} title={t('quickActions.randomPost')}>
           <i className="fas fa-random" />
         </span>
       </Ripple>
@@ -24,7 +26,7 @@ export function QuickActions({ onRandom, onRefresh, loading }: Props) {
         onClick={onRefresh}
         disabled={loading}
       >
-        <span className={cn('flex items-center justify-center w-10 h-10', loading && 'opacity-50')} title="Refresh (R)">
+        <span className={cn('flex items-center justify-center w-10 h-10', loading && 'opacity-50')} title={t('quickActions.refresh')}>
           <i className={cn('fas fa-sync-alt', loading && 'animate-spin')} />
         </span>
       </Ripple>

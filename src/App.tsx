@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo, FormEvent, Key } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Post, Settings, TagSuggestion } from './types';
 import { getActiveAccount } from './types';
 import { api, parseApiError } from './services/api';
@@ -39,6 +40,7 @@ type NavEntry =
   | { type: 'detail'; post: Post };
 
 export default function App() {
+  const { t } = useTranslation();
   const { settings, updateSettings } = useSettings();
   const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
   const { toasts, success, error: showError, info, removeToast } = useToast();
@@ -83,7 +85,7 @@ export default function App() {
         if (overrideTab === 'favorites') {
           const activeAccount = getActiveAccount(settings);
           if (!activeAccount?.username) {
-            throw new Error('Please set your username in Settings > Account to view favorites.');
+            throw new Error(t('app.usernameRequired'));
           }
           finalQuery = `fav:${activeAccount.username} ${overrideQuery}`;
         }
@@ -204,10 +206,10 @@ export default function App() {
       const randomPosts = await api.getPosts(settings, randomQuery, 1, 1);
       if (randomPosts.length > 0) {
         openDetail(randomPosts[0]);
-        info('Loaded a random post!');
+        info(t('app.randomPostSuccess'));
       }
     } catch (err) {
-      showError('Failed to load random post');
+      showError(t('app.randomPostError'));
     } finally {
       setLoading(false);
     }
@@ -218,22 +220,22 @@ export default function App() {
     {
       key: '/',
       action: () => document.getElementById('search-input')?.focus(),
-      description: 'Focus search',
+      description: t('shortcuts.focusSearch'),
     },
     {
       key: 'r',
       action: () => fetchPosts(true),
-      description: 'Refresh',
+      description: t('shortcuts.refresh'),
     },
     {
       key: 'x',
       action: () => fetchRandomPost(),
-      description: 'Random post',
+      description: t('shortcuts.randomPost'),
     },
     {
       key: 's',
       action: () => setSettingsOpen(true),
-      description: 'Settings',
+      description: t('shortcuts.settings'),
     },
     {
       key: 'Escape',
@@ -242,12 +244,12 @@ export default function App() {
         else if (settingsOpen) setSettingsOpen(false);
         else if (shortcutsHelpOpen) setShortcutsHelpOpen(false);
       },
-      description: 'Close',
+      description: t('shortcuts.close'),
     },
     {
       key: 'h',
       action: () => handleTabChange('home'),
-      description: 'Home',
+      description: t('shortcuts.home'),
     },
     {
       key: 'f',
@@ -255,17 +257,17 @@ export default function App() {
         const activeAccount = getActiveAccount(settings);
         if (activeAccount?.username) handleTabChange('favorites');
       },
-      description: 'Favorites',
+      description: t('shortcuts.favorites'),
     },
     {
       key: 'v',
       action: toggleViewMode,
-      description: 'Toggle view',
+      description: t('shortcuts.toggleView'),
     },
     {
       key: '?',
       action: () => setShortcutsHelpOpen(true),
-      description: 'Help',
+      description: t('shortcuts.help'),
     },
   ], !settingsOpen && !selectedPost);
 
@@ -335,7 +337,7 @@ export default function App() {
             <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-on-primary font-bold">
               e6
             </div>
-            <h1 className="text-xl font-bold hidden sm:block text-on-surface">Client</h1>
+            <h1 className="text-xl font-bold hidden sm:block text-on-surface">{t('app.title')}</h1>
           </button>
 
           <form onSubmit={handleSearch} className="flex-1 relative group">
@@ -365,7 +367,7 @@ export default function App() {
                   setShowSuggestions(false);
                 }, 200);
               }}
-              placeholder={tab === 'favorites' ? 'Filter favorites...' : 'Search tags... (e.g. rating:s fox)'}
+              placeholder={tab === 'favorites' ? t('app.favoritesPlaceholder') : t('app.searchPlaceholder')}
               className="w-full pl-11 pr-4 py-2.5 bg-surface-container-highest text-on-surface placeholder:text-on-surface-variant border-transparent focus:ring-2 focus:ring-primary rounded-full transition-all outline-none"
             />
 
@@ -407,7 +409,7 @@ export default function App() {
             className="rounded-full text-on-surface-variant"
             onClick={() => setSettingsOpen(true)}
           >
-            <span className="flex items-center justify-center w-10 h-10" title="Settings (S)">
+            <span className="flex items-center justify-center w-10 h-10" title={`${t('shortcuts.settings')} (S)`}>
               <i className="fas fa-cog text-xl" />
             </span>
           </Ripple>
@@ -424,7 +426,7 @@ export default function App() {
               className="rounded-full text-on-surface-variant"
               onClick={() => setShortcutsHelpOpen(true)}
             >
-              <span className="flex items-center justify-center w-10 h-10" title="Keyboard shortcuts (?)">
+              <span className="flex items-center justify-center w-10 h-10" title={`${t('shortcuts.help')} (?)`}>
                 <i className="fas fa-keyboard" />
               </span>
             </Ripple>
@@ -471,13 +473,13 @@ export default function App() {
         {!loading && posts.length === 0 && !error && (
           <div className="flex flex-col items-center justify-center py-20 text-on-surface-variant">
             <i className="fas fa-folder-open text-4xl mb-4" />
-            <p>No posts found.</p>
+            <p>{t('app.noPosts')}</p>
             {query && (
               <Ripple
                 className="mt-4 rounded-full bg-primary text-on-primary"
                 onClick={() => { setQuery(''); fetchPosts(true); }}
               >
-                <span className="block px-5 py-2.5 font-medium">Clear Search</span>
+                <span className="block px-5 py-2.5 font-medium">{t('app.clearSearch')}</span>
               </Ripple>
             )}
           </div>
@@ -487,11 +489,11 @@ export default function App() {
         <div ref={loaderRef} className="py-8 flex justify-center w-full">
           {loading && (
             <div className="flex items-center text-primary font-bold">
-              <i className="fas fa-spinner fa-spin mr-2 text-xl" /> Loading more...
+              <i className="fas fa-spinner fa-spin mr-2 text-xl" /> {t('app.loadingMore')}
             </div>
           )}
           {!hasMore && posts.length > 0 && !loading && (
-            <p className="text-on-surface-variant text-sm">You've reached the end!</p>
+            <p className="text-on-surface-variant text-sm">{t('app.endReached')}</p>
           )}
         </div>
       </main>
@@ -534,13 +536,14 @@ export default function App() {
 /* ---------- Sub-components ---------- */
 
 function TabBar({ active, onChange, settings }: { active: Tab; onChange: (t: Tab) => void; settings: Settings }) {
+  const { t } = useTranslation();
   const activeAccount = getActiveAccount(settings);
   const isLoggedIn = !!(activeAccount?.username && activeAccount?.apiKey);
   return (
     <nav className="flex space-x-4">
-      <TabButton active={active === 'home'} icon="fa-home" label="Browse" onClick={() => onChange('home')} />
+      <TabButton active={active === 'home'} icon="fa-home" label={t('tabs.browse')} onClick={() => onChange('home')} />
       {isLoggedIn && (
-        <TabButton active={active === 'favorites'} icon="fa-heart" label="Favorites" onClick={() => onChange('favorites')} />
+        <TabButton active={active === 'favorites'} icon="fa-heart" label={t('tabs.favorites')} onClick={() => onChange('favorites')} />
       )}
     </nav>
   );
@@ -585,21 +588,22 @@ function ErrorBanner({
   onRetry: () => void;
   onSettings: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className="bg-error-container text-on-error-container px-4 py-3 rounded-md relative mb-6 flex flex-col sm:flex-row justify-between items-center gap-4"
       role="alert"
     >
       <p>
-        <strong className="font-bold">Error: </strong>
+        <strong className="font-bold">{t('error.prefix')} </strong>
         {message}
       </p>
       <div className="flex gap-2">
         <Ripple className="rounded-full bg-error text-on-error" onClick={onRetry}>
-          <span className="block px-3 py-1 font-bold text-sm">Retry</span>
+          <span className="block px-3 py-1 font-bold text-sm">{t('error.retry')}</span>
         </Ripple>
         <Ripple className="rounded-full bg-surface-container-high text-on-surface" onClick={onSettings}>
-          <span className="block px-3 py-1 font-bold text-sm">Settings</span>
+          <span className="block px-3 py-1 font-bold text-sm">{t('error.settings')}</span>
         </Ripple>
       </div>
     </div>
@@ -617,15 +621,16 @@ function MobileNav({
   onSettings: () => void;
   settings: Settings;
 }) {
+  const { t } = useTranslation();
   const activeAccount = getActiveAccount(settings);
   const isLoggedIn = !!(activeAccount?.username && activeAccount?.apiKey);
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-high shadow-elevation-2 flex justify-around items-center pt-2 z-30 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
-      <MobileNavItem active={active === 'home'} icon="fa-home" label="Browse" onClick={() => onTabChange('home')} />
+      <MobileNavItem active={active === 'home'} icon="fa-home" label={t('tabs.browse')} onClick={() => onTabChange('home')} />
       {isLoggedIn && (
-        <MobileNavItem active={active === 'favorites'} icon="fa-heart" label="Favorites" onClick={() => onTabChange('favorites')} />
+        <MobileNavItem active={active === 'favorites'} icon="fa-heart" label={t('tabs.favorites')} onClick={() => onTabChange('favorites')} />
       )}
-      <MobileNavItem icon="fa-cog" label="Settings" onClick={onSettings} />
+      <MobileNavItem icon="fa-cog" label={t('tabs.settings')} onClick={onSettings} />
     </nav>
   );
 }

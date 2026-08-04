@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { SearchHistoryItem } from '../hooks/useSearchHistory';
 import { cn } from '../utils';
 
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function SearchHistory({ history, onSelect, onRemove, onClear, visible }: Props) {
+  const { t } = useTranslation();
   if (!visible || history.length === 0) return null;
 
   const formatTime = (timestamp: number) => {
@@ -19,10 +21,10 @@ export function SearchHistory({ history, onSelect, onRemove, onClear, visible }:
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
+    if (minutes < 1) return t('searchHistory.justNow');
+    if (minutes < 60) return t('searchHistory.minutesAgo', { count: minutes });
+    if (hours < 24) return t('searchHistory.hoursAgo', { count: hours });
+    return t('searchHistory.daysAgo', { count: days });
   };
 
   return (
@@ -30,7 +32,7 @@ export function SearchHistory({ history, onSelect, onRemove, onClear, visible }:
       <div className="flex justify-between items-center px-4 py-2 bg-surface-container-high border-b border-outline-variant/40">
         <span className="text-xs font-bold text-on-surface-variant uppercase">
           <i className="fas fa-history mr-2" />
-          Recent Searches
+          {t('searchHistory.recent')}
         </span>
         <button
           onClick={(e) => {
@@ -39,7 +41,7 @@ export function SearchHistory({ history, onSelect, onRemove, onClear, visible }:
           }}
           className="text-xs text-error hover:underline font-medium"
         >
-          Clear All
+          {t('searchHistory.clearAll')}
         </button>
       </div>
       {history.map((item) => (
