@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import type { SearchHistoryItem } from '../hooks/useSearchHistory';
-import { cn } from '../utils';
+import type { SearchHistoryItem } from '../../hooks/useSearchHistory';
+import { cn } from '../../utils';
 
 interface Props {
   history: SearchHistoryItem[];

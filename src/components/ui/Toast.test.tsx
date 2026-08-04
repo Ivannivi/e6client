@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ToastContainer } from './Toast';
-import type { Toast } from '../hooks/useToast';
+import type { Toast } from '../../hooks/useToast';
 
 function makeToast(overrides: Partial<Toast> = {}): Toast {
   return {

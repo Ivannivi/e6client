@@ -1,5 +1,5 @@
 import { useTranslation, Trans } from 'react-i18next';
-import { cn } from '../utils';
+import { cn } from '../../utils';
 
 interface Props {
   isOpen: boolean;

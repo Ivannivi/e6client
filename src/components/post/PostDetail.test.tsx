@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ReactNode } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PostDetail } from './PostDetail';
-import { makePost, makeSettings, makeComment, makeUser } from '../test/factories';
+import { makePost, makeSettings, makeComment, makeUser } from '../../test/factories';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -24,11 +24,11 @@ const apiMock = vi.hoisted(() => ({
   getUser: vi.fn(),
 }));
 
-vi.mock('../services/api', () => ({
+vi.mock('../../services/api', () => ({
   api: apiMock,
 }));
 
-vi.mock('../utils', () => ({
+vi.mock('../../utils', () => ({
   downloadFile: vi.fn().mockResolvedValue(undefined),
   shareContent: vi.fn().mockResolvedValue(true),
   copyToClipboard: vi.fn().mockResolvedValue(true),
@@ -38,7 +38,7 @@ vi.mock('../utils', () => ({
   cn: (...args: (string | boolean | undefined)[]) => args.filter(Boolean).join(' '),
 }));
 
-vi.mock('./Ripple', () => ({
+vi.mock('../ui/Ripple', () => ({
   Ripple: ({ children, onClick, disabled }: { children: ReactNode; onClick?: () => void; disabled?: boolean }) => (
     <div onClick={disabled ? undefined : onClick} data-disabled={disabled ?? false}>{children}</div>
   ),
@@ -206,7 +206,7 @@ describe('PostDetail', () => {
     apiMock.getComments.mockResolvedValue([]);
     apiMock.getUsersByIds.mockResolvedValue([]);
     apiMock.getUser.mockResolvedValue(null);
-    const { downloadFile } = await import('../utils');
+    const { downloadFile } = await import('../../utils');
     const post = makePost({}, { url: 'https://example.com/file.png', ext: 'png' });
     render(<PostDetail post={post} settings={makeSettings()} onClose={vi.fn()} />);
     const saveBtn = screen.getByText('postDetail.save').closest('button')!;
@@ -228,7 +228,7 @@ describe('PostDetail', () => {
     apiMock.getComments.mockResolvedValue([]);
     apiMock.getUsersByIds.mockResolvedValue([]);
     apiMock.getUser.mockResolvedValue(null);
-    const { shareContent } = await import('../utils');
+    const { shareContent } = await import('../../utils');
     render(<PostDetail post={makePost()} settings={makeSettings()} onClose={vi.fn()} />);
     const shareBtn = screen.getByText('postDetail.share').closest('button')!;
     fireEvent.click(shareBtn);
@@ -239,7 +239,7 @@ describe('PostDetail', () => {
     apiMock.getComments.mockResolvedValue([]);
     apiMock.getUsersByIds.mockResolvedValue([]);
     apiMock.getUser.mockResolvedValue(null);
-    const { shareContent } = await import('../utils');
+    const { shareContent } = await import('../../utils');
     (shareContent as ReturnType<typeof vi.fn>).mockResolvedValue(true);
     render(<PostDetail post={makePost()} settings={makeSettings()} onClose={vi.fn()} />);
     const shareBtn = screen.getByText('postDetail.share').closest('button')!;
@@ -251,7 +251,7 @@ describe('PostDetail', () => {
     apiMock.getComments.mockResolvedValue([]);
     apiMock.getUsersByIds.mockResolvedValue([]);
     apiMock.getUser.mockResolvedValue(null);
-    const { copyToClipboard } = await import('../utils');
+    const { copyToClipboard } = await import('../../utils');
     render(<PostDetail post={makePost()} settings={makeSettings()} onClose={vi.fn()} />);
     const copyBtn = screen.getByText('postDetail.copy').closest('button')!;
     fireEvent.click(copyBtn);
@@ -262,7 +262,7 @@ describe('PostDetail', () => {
     apiMock.getComments.mockResolvedValue([]);
     apiMock.getUsersByIds.mockResolvedValue([]);
     apiMock.getUser.mockResolvedValue(null);
-    const { copyToClipboard } = await import('../utils');
+    const { copyToClipboard } = await import('../../utils');
     (copyToClipboard as ReturnType<typeof vi.fn>).mockResolvedValue(true);
     render(<PostDetail post={makePost()} settings={makeSettings()} onClose={vi.fn()} />);
     const copyBtn = screen.getByText('postDetail.copy').closest('button')!;
