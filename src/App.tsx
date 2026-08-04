@@ -336,9 +336,7 @@ export default function App() {
       <header className="sticky top-0 z-40 bg-surface-container border-b border-outline-variant/40 pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 flex items-center gap-4">
           <button className="flex items-center gap-2 cursor-pointer" onClick={goHome}>
-            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-on-primary font-bold">
-              e6
-            </div>
+            <img src="/icon.svg" alt="e6client" className="w-8 h-8 rounded-md" />
             <h1 className="text-xl font-bold hidden sm:block text-on-surface">{t('app.title')}</h1>
           </button>
 
