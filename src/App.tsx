@@ -369,7 +369,7 @@ export default function App() {
                   setShowSuggestions(false);
                 }, 200);
               }}
-              placeholder={tab === 'favorites' ? t('app.favoritesPlaceholder') : t('app.searchPlaceholder')}
+              placeholder="Search"
               className="w-full pl-11 pr-4 py-2.5 bg-surface-container-highest text-on-surface placeholder:text-on-surface-variant border-transparent focus:ring-2 focus:ring-primary rounded-full transition-all outline-none"
             />
 

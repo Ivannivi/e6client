@@ -80,7 +80,7 @@ afterEach(() => {
 describe('App', () => {
   it('renders the app title and search bar', async () => {
     render(<App />);
-    await waitFor(() => expect(screen.getByPlaceholderText('app.searchPlaceholder')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByPlaceholderText('Search')).toBeInTheDocument());
   });
 
   it('fetches posts on mount', async () => {
@@ -145,7 +145,7 @@ describe('App', () => {
     apiMock.getPosts.mockClear();
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    const input = screen.getByPlaceholderText('app.searchPlaceholder');
+    const input = screen.getByPlaceholderText('Search');
     fireEvent.change(input, { target: { value: 'fox' } });
     fireEvent.submit(input.closest('form')!);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalledTimes(2));
@@ -203,7 +203,7 @@ describe('App', () => {
     apiMock.searchTags.mockResolvedValue([makeTagSuggestion({ name: 'fox' })]);
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    const input = screen.getByPlaceholderText('app.searchPlaceholder');
+    const input = screen.getByPlaceholderText('Search');
     fireEvent.change(input, { target: { value: 'fox' } });
     fireEvent.focus(input);
     await waitFor(() => expect(apiMock.searchTags).toHaveBeenCalled(), { timeout: 5000 });
@@ -222,7 +222,7 @@ describe('App', () => {
     apiMock.getPosts.mockResolvedValue([]);
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    const input = screen.getByPlaceholderText('app.searchPlaceholder');
+    const input = screen.getByPlaceholderText('Search');
     fireEvent.change(input, { target: { value: 'nothing' } });
     fireEvent.submit(input.closest('form')!);
     await waitFor(() => expect(screen.getByText('app.clearSearch')).toBeInTheDocument());
@@ -295,7 +295,7 @@ describe('App', () => {
   it('focuses search input via keyboard shortcut /', async () => {
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    const input = screen.getByPlaceholderText('app.searchPlaceholder');
+    const input = screen.getByPlaceholderText('Search');
     const focusSpy = vi.spyOn(input, 'focus');
     fireEvent.keyDown(document.body, { key: '/' });
     expect(focusSpy).toHaveBeenCalled();
@@ -424,7 +424,7 @@ describe('App', () => {
     localStorage.setItem('e6-search-history', JSON.stringify([{ query: 'fox', timestamp: Date.now() }]));
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    const input = screen.getByPlaceholderText('app.searchPlaceholder');
+    const input = screen.getByPlaceholderText('Search');
     fireEvent.focus(input);
     await waitFor(() => expect(screen.getByText('fox')).toBeInTheDocument());
   });
@@ -433,7 +433,7 @@ describe('App', () => {
     localStorage.setItem('e6-search-history', JSON.stringify([{ query: 'fox', timestamp: Date.now() }]));
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    const input = screen.getByPlaceholderText('app.searchPlaceholder');
+    const input = screen.getByPlaceholderText('Search');
     fireEvent.focus(input);
     await waitFor(() => expect(screen.getByText('fox')).toBeInTheDocument());
     apiMock.getPosts.mockClear();
@@ -448,7 +448,7 @@ describe('App', () => {
     ]));
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    const input = screen.getByPlaceholderText('app.searchPlaceholder');
+    const input = screen.getByPlaceholderText('Search');
     fireEvent.focus(input);
     await waitFor(() => expect(screen.getByText('searchHistory.clearAll')).toBeInTheDocument());
     fireEvent.click(screen.getByText('searchHistory.clearAll'));
@@ -461,7 +461,7 @@ describe('App', () => {
     ]));
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    const input = screen.getByPlaceholderText('app.searchPlaceholder');
+    const input = screen.getByPlaceholderText('Search');
     fireEvent.focus(input);
     await waitFor(() => expect(screen.getByText('fox')).toBeInTheDocument());
     const itemRow = screen.getByText('fox').closest('.group') || screen.getByText('fox').parentElement!.parentElement!;
@@ -474,7 +474,7 @@ describe('App', () => {
     apiMock.searchTags.mockResolvedValue([makeTagSuggestion({ name: 'fox', post_count: 100 })]);
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    const input = screen.getByPlaceholderText('app.searchPlaceholder') as HTMLInputElement;
+    const input = screen.getByPlaceholderText('Search') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'fox' } });
     fireEvent.focus(input);
     await waitFor(() => expect(screen.getByText('fox')).toBeInTheDocument(), { timeout: 5000 });

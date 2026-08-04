@@ -1,8 +1,6 @@
 {
   "app": {
     "title": "Client",
-    "searchPlaceholder": "Search tags... (e.g. rating:s fox)",
-    "favoritesPlaceholder": "Filter favorites...",
     "noPosts": "No posts found.",
     "clearSearch": "Clear Search",
     "loadingMore": "Loading more...",
