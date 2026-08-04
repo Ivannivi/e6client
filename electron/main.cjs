@@ -16,7 +16,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.cjs')
     },
     icon: path.join(__dirname, '../public/favicon.ico'), // Add icon if available
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
