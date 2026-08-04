@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ViewMode } from '../hooks/useViewMode';
 import { cn } from '../utils';
 
@@ -6,16 +7,17 @@ interface Props {
   onChange: (mode: ViewMode) => void;
 }
 
-const VIEW_MODES: { mode: ViewMode; icon: string; label: string }[] = [
-  { mode: 'grid', icon: 'fa-th', label: 'Grid' },
-  { mode: 'list', icon: 'fa-list', label: 'List' },
-  { mode: 'compact', icon: 'fa-th-large', label: 'Compact' },
+const VIEW_MODES: { mode: ViewMode; icon: string; labelKey: string }[] = [
+  { mode: 'grid', icon: 'fa-th', labelKey: 'viewMode.grid' },
+  { mode: 'list', icon: 'fa-list', labelKey: 'viewMode.list' },
+  { mode: 'compact', icon: 'fa-th-large', labelKey: 'viewMode.compact' },
 ];
 
 export function ViewModeToggle({ viewMode, onChange }: Props) {
+  const { t } = useTranslation();
   return (
     <div className="flex rounded-full bg-surface-container p-1">
-      {VIEW_MODES.map(({ mode, icon, label }) => (
+      {VIEW_MODES.map(({ mode, icon, labelKey }) => (
         <button
           key={mode}
           onClick={() => onChange(mode)}
@@ -25,10 +27,10 @@ export function ViewModeToggle({ viewMode, onChange }: Props) {
               ? 'bg-secondary-container text-on-secondary-container'
               : 'text-on-surface-variant hover:text-on-surface'
           )}
-          title={label}
+          title={t(labelKey)}
         >
           <i className={`fas ${icon}`} />
-          <span className="hidden sm:inline">{label}</span>
+          <span className="hidden sm:inline">{t(labelKey)}</span>
         </button>
       ))}
     </div>

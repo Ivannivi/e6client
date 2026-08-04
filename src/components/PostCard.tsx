@@ -1,4 +1,5 @@
 import type { Key } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Post, Settings } from '../types';
 import { TAG_STYLES } from '../config';
 import { isVideoFile, cn } from '../utils';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function PostCard({ post, settings, onClick }: Props) {
+  const { t } = useTranslation();
   const isSafe = post.rating === 's';
   const shouldBlur = settings.safeMode && !isSafe;
   const isVideo = isVideoFile(post.file.ext);
@@ -23,7 +25,7 @@ export function PostCard({ post, settings, onClick }: Props) {
 
   const artists = post.tags.artist.length > 0
     ? post.tags.artist.join(', ')
-    : 'Unknown Artist';
+    : t('postCard.unknownArtist');
 
   return (
     <Ripple

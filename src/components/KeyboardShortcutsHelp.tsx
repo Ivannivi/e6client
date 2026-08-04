@@ -1,3 +1,4 @@
+import { useTranslation, Trans } from 'react-i18next';
 import { cn } from '../utils';
 
 interface Props {
@@ -5,20 +6,21 @@ interface Props {
   onClose: () => void;
 }
 
-const SHORTCUTS = [
-  { key: '/', description: 'Focus search bar' },
-  { key: 'R', description: 'Refresh posts' },
-  { key: 'X', description: 'Load random post' },
-  { key: 'S', description: 'Open settings' },
-  { key: 'H', description: 'Go to home/browse' },
-  { key: 'F', description: 'Go to favorites' },
-  { key: 'V', description: 'Toggle view mode' },
-  { key: 'Esc', description: 'Close modal/overlay' },
-  { key: '?', description: 'Show this help' },
-];
-
 export function KeyboardShortcutsHelp({ isOpen, onClose }: Props) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
+
+  const shortcuts = [
+    { key: '/', description: t('shortcutsHelp.focusSearchBar') },
+    { key: 'R', description: t('shortcutsHelp.refreshPosts') },
+    { key: 'X', description: t('shortcutsHelp.loadRandomPost') },
+    { key: 'S', description: t('shortcutsHelp.openSettings') },
+    { key: 'H', description: t('shortcutsHelp.goHome') },
+    { key: 'F', description: t('shortcutsHelp.goFavorites') },
+    { key: 'V', description: t('shortcutsHelp.toggleViewMode') },
+    { key: 'Esc', description: t('shortcutsHelp.closeModal') },
+    { key: '?', description: t('shortcutsHelp.showHelp') },
+  ];
 
   return (
     <div
@@ -32,7 +34,7 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: Props) {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-on-surface flex items-center gap-2">
             <i className="fas fa-keyboard text-primary" />
-            Keyboard Shortcuts
+            {t('shortcutsHelp.title')}
           </h2>
           <button
             onClick={onClose}
@@ -43,7 +45,7 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: Props) {
         </div>
 
         <div className="space-y-3">
-          {SHORTCUTS.map(({ key, description }) => (
+          {shortcuts.map(({ key, description }) => (
             <div
               key={key}
               className="flex items-center justify-between py-2 border-b border-outline-variant/40 last:border-0"
@@ -57,7 +59,10 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: Props) {
         </div>
 
         <p className="mt-6 text-xs text-on-surface-variant text-center">
-          Press <kbd className="px-1.5 py-0.5 bg-surface-container-highest rounded-xs text-xs">?</kbd> anytime to show this help
+          <Trans
+            i18nKey="shortcutsHelp.footer"
+            components={{ kbd: <kbd className="px-1.5 py-0.5 bg-surface-container-highest rounded-xs text-xs" /> }}
+          />
         </p>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, Key } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Post, Settings, Comment } from '../types';
 import { api } from '../services/api';
 import { RATING, TAG_STYLES } from '../config';
@@ -14,11 +15,12 @@ interface Props {
 type TagCategory = keyof typeof TAG_STYLES.category;
 
 export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
+  const { t } = useTranslation();
   const isVideo = ['webm', 'mp4'].includes(post.file.ext);
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
-  const [uploaderName, setUploaderName] = useState('Unknown');
+  const [uploaderName, setUploaderName] = useState(() => t('postDetail.unknownUploader'));
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -39,7 +41,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
 
         const enriched = rawComments.map((c) => ({
           ...c,
-          creator: c.creator || userMap.get(c.creator_id)?.name || `User #${c.creator_id}`,
+          creator: c.creator || userMap.get(c.creator_id)?.name || t('postDetail.userFallback', { id: c.creator_id }),
         }));
 
         if (!cancelled) setComments(enriched);
@@ -89,8 +91,8 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
   const handleShare = useCallback(async () => {
     const url = `https://e621.net/posts/${post.id}`;
     const shared = await shareContent({
-      title: `Post #${post.id}`,
-      text: `Check out this post by ${post.tags.artist.join(', ') || 'unknown artist'}`,
+      title: t('postDetail.shareTitle', { id: post.id }),
+      text: t('postDetail.shareText', { artist: post.tags.artist.join(', ') || 'unknown artist' }),
       url,
     });
     
@@ -140,12 +142,12 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
               {isExpanded ? (
                 <>
                   <i className="fas fa-minus mr-1" />
-                  Show Less
+                  {t('postDetail.showLess')}
                 </>
               ) : (
                 <>
                   <i className="fas fa-plus mr-1" />
-                  {tags.length - threshold} more
+                  {t('postDetail.moreTags', { count: tags.length - threshold })}
                 </>
               )}
             </button>
@@ -206,13 +208,13 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
           {/* Header */}
           <header className="p-4 border-b border-outline-variant/40 flex justify-between items-start">
             <div>
-              <h2 className="text-lg font-bold text-on-surface">Post #{post.id}</h2>
+              <h2 className="text-lg font-bold text-on-surface">{t('postDetail.postId', { id: post.id })}</h2>
               <div className="flex items-center gap-2 mt-1">
                 <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full', ratingBadge)}>
                   {RATING.labels[post.rating]}
                 </span>
                 <span className="text-xs text-on-surface-variant">
-                  by{' '}
+                  {t('postDetail.byUploader')}{' '}
                   <button
                     className="font-bold text-primary cursor-pointer hover:underline"
                     onClick={() => searchTag(`user:${uploaderName}`)}
@@ -253,7 +255,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                 >
                   <i className={cn('fas text-xl mb-1', downloading ? 'fa-spinner fa-spin' : 'fa-download')} />
                   <span className="text-xs">
-                    {downloading ? `${downloadProgress}%` : 'Save'}
+                    {downloading ? `${downloadProgress}%` : t('postDetail.save')}
                   </span>
                 </button>
                 <button
@@ -261,14 +263,14 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                   className="flex flex-col items-center text-on-surface-variant hover:text-tertiary transition-colors relative"
                 >
                   <i className="fas fa-share-alt text-xl mb-1" />
-                  <span className="text-xs">{showCopied ? 'Copied!' : 'Share'}</span>
+                  <span className="text-xs">{showCopied ? t('postDetail.copied') : t('postDetail.share')}</span>
                 </button>
                 <button
                   onClick={handleCopyLink}
                   className="flex flex-col items-center text-on-surface-variant hover:text-green-500 transition-colors"
                 >
                   <i className="fas fa-link text-xl mb-1" />
-                  <span className="text-xs">Copy</span>
+                  <span className="text-xs">{t('postDetail.copy')}</span>
                 </button>
                 <a
                   href={`https://e621.net/posts/${post.id}`}
@@ -277,7 +279,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                   className="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors"
                 >
                   <i className="fas fa-external-link-alt text-xl mb-1" />
-                  <span className="text-xs">Open</span>
+                  <span className="text-xs">{t('postDetail.open')}</span>
                 </a>
               </div>
 
@@ -294,7 +296,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
               {post.description && (
                 <div className="mt-6 pt-4 border-t border-outline-variant/40">
                   <h4 className="text-xs font-bold uppercase text-on-surface-variant mb-2">
-                    Description
+                    {t('postDetail.description')}
                   </h4>
                   <p className="prose dark:prose-invert text-sm max-w-none whitespace-pre-wrap font-sans text-on-surface break-words">
                     {post.description}
@@ -306,13 +308,13 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
             {/* Comments */}
             <section className="bg-surface-container-low border-t border-outline-variant/40 p-4">
               <h3 className="text-sm font-bold text-on-surface mb-4 flex items-center">
-                <i className="fas fa-comments mr-2" /> Comments ({comments.length})
+                <i className="fas fa-comments mr-2" /> {t('postDetail.comments', { count: comments.length })}
               </h3>
 
               {loadingComments ? (
-                <p className="text-center text-on-surface-variant py-4">Loading comments...</p>
+                <p className="text-center text-on-surface-variant py-4">{t('postDetail.loadingComments')}</p>
               ) : comments.length === 0 ? (
-                <p className="text-center text-on-surface-variant py-4 text-sm">No comments yet.</p>
+                <p className="text-center text-on-surface-variant py-4 text-sm">{t('postDetail.noComments')}</p>
               ) : (
                 <div className="space-y-4">
                   {comments.map(

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, KeyboardEvent } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import type { Settings, Account } from '../types';
 import { getActiveAccount, createAccount } from '../types';
 import { api } from '../services/api';
@@ -14,17 +15,21 @@ interface Props {
 
 type Tab = 'account' | 'network' | 'blacklist';
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'account', label: 'Account', icon: 'fa-user' },
-  { id: 'blacklist', label: 'Blacklist', icon: 'fa-ban' },
-  { id: 'network', label: 'Network', icon: 'fa-network-wired' },
+type SyncStatus = 'error' | 'success' | null;
+
+const TABS: { id: Tab; labelKey: string; icon: string }[] = [
+  { id: 'account', labelKey: 'settings.tabs.account', icon: 'fa-user' },
+  { id: 'blacklist', labelKey: 'settings.tabs.blacklist', icon: 'fa-ban' },
+  { id: 'network', labelKey: 'settings.tabs.network', icon: 'fa-network-wired' },
 ];
 
 export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
+  const { t } = useTranslation();
   const [local, setLocal] = useState<Settings>(settings);
   const [activeTab, setActiveTab] = useState<Tab>('account');
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(null);
   const [hasSynced, setHasSynced] = useState(false);
 
   // Reset state when modal opens
@@ -33,6 +38,7 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
       setLocal(settings);
       setHasSynced(false);
       setSyncMsg(null);
+      setSyncStatus(null);
     }
   }, [isOpen, settings]);
 
@@ -55,6 +61,7 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
     
     setSyncing(true);
     setSyncMsg(null);
+    setSyncStatus(null);
 
     try {
       const user = await api.getUserByName(local, activeAccount.username);
@@ -65,7 +72,8 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
           .filter(Boolean);
         const merged = [...new Set([...local.blacklistedTags, ...cloudTags])];
         setLocal((prev) => ({ ...prev, blacklistedTags: merged }));
-        setSyncMsg(`Auto-synced ${cloudTags.length} tags from account.`);
+        setSyncMsg(t('settings.blacklist.syncAuto', { count: cloudTags.length }));
+        setSyncStatus('success');
       }
     } catch {
       // Silent fail for auto-sync
@@ -114,11 +122,13 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
   const syncBlacklist = async () => {
     const activeAccount = getActiveAccount(local);
     if (!activeAccount?.username) {
-      setSyncMsg('Please set up an account first.');
+      setSyncMsg(t('settings.blacklist.syncNoAccount'));
+      setSyncStatus('error');
       return;
     }
     setSyncing(true);
     setSyncMsg(null);
+    setSyncStatus(null);
 
     try {
       const user = await api.getUserByName(local, activeAccount.username);
@@ -131,22 +141,25 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
         const merged = [...new Set([...local.blacklistedTags, ...cloudTags])];
         setLocal((prev) => ({ ...prev, blacklistedTags: merged }));
         if (newTags.length > 0) {
-          setSyncMsg(`Synced! Added ${newTags.length} new tags.`);
+          setSyncMsg(t('settings.blacklist.syncSynced', { count: newTags.length }));
         } else {
-          setSyncMsg('Already up to date!');
+          setSyncMsg(t('settings.blacklist.syncUpToDate'));
         }
+        setSyncStatus('success');
       } else {
-        setSyncMsg('User not found or empty blacklist.');
+        setSyncMsg(t('settings.blacklist.syncUserNotFound'));
+        setSyncStatus('error');
       }
     } catch (e: any) {
       const status = e?.response?.status;
       if (status === 403) {
-        setSyncMsg('Sync failed (403). Access denied. Try enabling the Proxy.');
+        setSyncMsg(t('settings.blacklist.syncFailed403'));
       } else if (status === 401) {
-        setSyncMsg('Sync failed (401). Invalid API Key.');
+        setSyncMsg(t('settings.blacklist.syncFailed401'));
       } else {
-        setSyncMsg('Sync failed. Check connection or Proxy.');
+        setSyncMsg(t('settings.blacklist.syncFailedGeneric'));
       }
+      setSyncStatus('error');
     } finally {
       setSyncing(false);
     }
@@ -161,7 +174,7 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
       <div className="bg-surface-container rounded-xl shadow-elevation-3 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <header className="p-6 border-b border-outline-variant/40 flex justify-between items-center bg-surface-container z-10">
-          <h2 className="text-2xl font-bold text-on-surface">Settings</h2>
+          <h2 className="text-2xl font-bold text-on-surface">{t('settings.title')}</h2>
           <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface">
             <i className="fas fa-times text-xl" />
           </button>
@@ -181,7 +194,7 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
               )}
             >
               <i className={`fas ${tab.icon}`} />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="hidden sm:inline">{t(tab.labelKey)}</span>
             </button>
           ))}
         </nav>
@@ -204,6 +217,7 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
               onSync={syncBlacklist}
               syncing={syncing}
               syncMsg={syncMsg}
+              syncStatus={syncStatus}
             />
           )}
 
@@ -223,13 +237,13 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
             onClick={onClose}
             className="px-4 py-2 mr-2 text-on-surface-variant hover:text-on-surface"
           >
-            Cancel
+            {t('settings.cancel')}
           </button>
           <Ripple
             className="rounded-full bg-primary text-on-primary shadow-elevation-1"
             onClick={handleSave}
           >
-            <span className="block px-6 py-2 font-medium">Save Changes</span>
+            <span className="block px-6 py-2 font-medium">{t('settings.saveChanges')}</span>
           </Ripple>
         </footer>
       </div>
@@ -270,6 +284,7 @@ function AccountTab({
   settings: Settings;
   onChange: (settings: Settings) => void;
 }) {
+  const { t } = useTranslation();
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [showKey, setShowKey] = useState(false);
 
@@ -330,63 +345,63 @@ function AccountTab({
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-on-surface">
-            {settings.accounts.find((a) => a.id === editingAccount.id) ? 'Edit Account' : 'New Account'}
+            {settings.accounts.find((a) => a.id === editingAccount.id) ? t('settings.account.editAccount') : t('settings.account.newAccount')}
           </h3>
           <button
             onClick={() => setEditingAccount(null)}
             className="text-on-surface-variant hover:text-on-surface"
           >
             <i className="fas fa-arrow-left mr-2" />
-            Back
+            {t('settings.account.back')}
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-on-surface-variant mb-1">
-              Account Name
+              {t('settings.account.accountName')}
             </label>
             <input
               type="text"
               value={editingAccount.name}
               onChange={(e) => setEditingAccount({ ...editingAccount, name: e.target.value })}
               className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
-              placeholder="My Account"
+              placeholder={t('settings.account.accountNamePlaceholder')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-on-surface-variant mb-1">
-              Host URL
+              {t('settings.account.hostUrl')}
             </label>
             <input
               type="text"
               value={editingAccount.hostUrl}
               onChange={(e) => setEditingAccount({ ...editingAccount, hostUrl: e.target.value })}
               className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
-              placeholder="https://e621.net"
+              placeholder={t('settings.account.hostUrlPlaceholder')}
             />
             <p className="text-xs text-on-surface-variant mt-1">
-              e.g., https://e621.net or https://e926.net
+              {t('settings.account.hostUrlHint')}
             </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-on-surface-variant mb-1">
-                Username
+                {t('settings.account.username')}
               </label>
               <input
                 type="text"
                 value={editingAccount.username}
                 onChange={(e) => setEditingAccount({ ...editingAccount, username: e.target.value })}
                 className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
-                placeholder="e.g. user123"
+                placeholder={t('settings.account.usernamePlaceholder')}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-on-surface-variant mb-1">
-                API Key
+                {t('settings.account.apiKey')}
               </label>
               <div className="relative">
                 <input
@@ -409,7 +424,7 @@ function AccountTab({
           <div className="bg-secondary-container/50 p-3 rounded-md border border-secondary/30">
             <p className="text-xs text-on-secondary-container">
               <i className="fas fa-info-circle mr-1" />
-              API Key is found in your e621 Account Settings &gt; API.
+              {t('settings.account.apiKeyHint')}
             </p>
           </div>
         </div>
@@ -419,10 +434,10 @@ function AccountTab({
             onClick={() => setEditingAccount(null)}
             className="px-4 py-2 text-on-surface-variant hover:text-on-surface"
           >
-            Cancel
+            {t('settings.cancel')}
           </button>
           <Ripple className="rounded-full bg-primary text-on-primary" onClick={handleSaveAccount}>
-            <span className="block px-4 py-2">Save Account</span>
+            <span className="block px-4 py-2">{t('settings.account.saveAccount')}</span>
           </Ripple>
         </div>
       </div>
@@ -432,11 +447,11 @@ function AccountTab({
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-on-surface">Accounts</h3>
+        <h3 className="text-lg font-bold text-on-surface">{t('settings.account.title')}</h3>
         <Ripple className="rounded-full bg-primary text-on-primary" onClick={handleAddAccount}>
           <span className="block px-3 py-1.5 text-sm">
             <i className="fas fa-plus mr-2" />
-            Add Account
+            {t('settings.account.addAccount')}
           </span>
         </Ripple>
       </div>
@@ -444,9 +459,9 @@ function AccountTab({
       {settings.accounts.length === 0 ? (
         <div className="bg-surface-container-low border border-outline-variant/40 rounded-lg p-8 text-center">
           <i className="fas fa-user-plus text-4xl text-on-surface-variant mb-4" />
-          <p className="text-on-surface-variant mb-4">No accounts configured</p>
+          <p className="text-on-surface-variant mb-4">{t('settings.account.noAccounts')}</p>
           <Ripple className="inline-block rounded-full bg-primary text-on-primary" onClick={handleAddAccount}>
-            <span className="block px-4 py-2">Add Your First Account</span>
+            <span className="block px-4 py-2">{t('settings.account.addFirstAccount')}</span>
           </Ripple>
         </div>
       ) : (
@@ -476,12 +491,12 @@ function AccountTab({
                       <span className="font-medium text-on-surface">{account.name}</span>
                       {account.id === settings.activeAccountId && (
                         <span className="text-xs bg-primary text-on-primary px-2 py-0.5 rounded-full">
-                          Active
+                          {t('settings.account.active')}
                         </span>
                       )}
                     </div>
                     <div className="text-xs text-on-surface-variant">
-                      {account.username || 'No username'} • {new URL(account.hostUrl).hostname}
+                      {account.username || t('settings.account.noUsername')} • {new URL(account.hostUrl).hostname}
                     </div>
                   </div>
                 </div>
@@ -490,7 +505,7 @@ function AccountTab({
                     <button
                       onClick={() => handleSetActive(account.id)}
                       className="p-2 text-on-surface-variant hover:text-primary"
-                      title="Set as active"
+                      title={t('settings.account.setActive')}
                     >
                       <i className="fas fa-check-circle" />
                     </button>
@@ -498,14 +513,14 @@ function AccountTab({
                   <button
                     onClick={() => handleEditAccount(account)}
                     className="p-2 text-on-surface-variant hover:text-primary"
-                    title="Edit"
+                    title={t('settings.account.edit')}
                   >
                     <i className="fas fa-edit" />
                   </button>
                   <button
                     onClick={() => handleDeleteAccount(account.id)}
                     className="p-2 text-on-surface-variant hover:text-error"
-                    title="Delete"
+                    title={t('settings.account.delete')}
                   >
                     <i className="fas fa-trash" />
                   </button>
@@ -520,7 +535,11 @@ function AccountTab({
         <div className="bg-secondary-container/50 p-3 rounded-lg border border-secondary/30">
           <p className="text-sm text-on-secondary-container">
             <i className="fas fa-check-circle mr-2" />
-            Using <strong>{activeAccount.name}</strong> ({new URL(activeAccount.hostUrl).hostname})
+            <Trans
+              i18nKey="settings.account.usingAccount"
+              values={{ name: activeAccount.name, host: new URL(activeAccount.hostUrl).hostname }}
+              components={{ bold: <strong /> }}
+            />
           </p>
         </div>
       )}
@@ -536,6 +555,7 @@ function BlacklistTab({
   onSync,
   syncing,
   syncMsg,
+  syncStatus,
 }: {
   settings: Settings;
   onToggle: (key: keyof Settings) => void;
@@ -544,7 +564,9 @@ function BlacklistTab({
   onSync: () => void;
   syncing: boolean;
   syncMsg: string | null;
+  syncStatus: 'error' | 'success' | null;
 }) {
+  const { t } = useTranslation();
   const activeAccount = getActiveAccount(settings);
   
   return (
@@ -552,8 +574,8 @@ function BlacklistTab({
       {/* NSFW Toggle */}
       <div className="flex items-center justify-between p-3 bg-error-container/40 rounded-lg border border-error/30">
         <div>
-          <span className="text-on-surface block font-medium">NSFW Mode</span>
-          <span className="text-xs text-on-surface-variant">Enable adult content (Questionable/Explicit)</span>
+          <span className="text-on-surface block font-medium">{t('settings.blacklist.nsfwMode')}</span>
+          <span className="text-xs text-on-surface-variant">{t('settings.blacklist.nsfwHint')}</span>
         </div>
         <Toggle enabled={settings.nsfwEnabled} onToggle={() => onToggle('nsfwEnabled')} color="bg-error" />
       </div>
@@ -562,8 +584,8 @@ function BlacklistTab({
       {settings.nsfwEnabled && (
         <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg">
           <div>
-            <span className="text-on-surface block font-medium">Safe Mode</span>
-            <span className="text-xs text-on-surface-variant">Blur Explicit/Questionable posts in results</span>
+            <span className="text-on-surface block font-medium">{t('settings.blacklist.safeMode')}</span>
+            <span className="text-xs text-on-surface-variant">{t('settings.blacklist.safeHint')}</span>
           </div>
           <Toggle enabled={settings.safeMode} onToggle={() => onToggle('safeMode')} color="bg-green-500" />
         </div>
@@ -573,11 +595,11 @@ function BlacklistTab({
       <div>
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
-            <label className="block text-sm font-medium text-on-surface-variant">Blacklisted Tags</label>
+            <label className="block text-sm font-medium text-on-surface-variant">{t('settings.blacklist.blacklistedTags')}</label>
             {syncing && (
               <span className="text-xs text-primary">
                 <i className="fas fa-spinner fa-spin mr-1" />
-                Syncing...
+                {t('settings.blacklist.syncing')}
               </span>
             )}
           </div>
@@ -586,16 +608,16 @@ function BlacklistTab({
               onClick={onSync}
               disabled={syncing}
               className="text-xs px-2 py-1 bg-primary text-on-primary rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-1"
-              title="Refresh blacklist from account"
+              title={t('settings.blacklist.refreshTitle')}
             >
               <i className={cn('fas fa-sync-alt', syncing && 'fa-spin')} />
-              <span className="hidden sm:inline">Refresh</span>
+              <span className="hidden sm:inline">{t('settings.blacklist.refresh')}</span>
             </button>
           )}
         </div>
         {syncMsg && (
-          <p className={cn('text-xs mb-2', syncMsg.includes('failed') ? 'text-error' : 'text-green-500')}>
-            <i className={cn('fas mr-1', syncMsg.includes('failed') ? 'fa-exclamation-circle' : 'fa-check-circle')} />
+          <p className={cn('text-xs mb-2', syncStatus === 'error' ? 'text-error' : 'text-green-500')}>
+            <i className={cn('fas mr-1', syncStatus === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle')} />
             {syncMsg}
           </p>
         )}
@@ -604,12 +626,12 @@ function BlacklistTab({
           type="text"
           onKeyDown={onAddTag}
           className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface mb-2"
-          placeholder="Type tag and press Enter to add..."
+          placeholder={t('settings.blacklist.tagPlaceholder')}
         />
 
         <div className="bg-surface-container-low border border-outline-variant/40 rounded-lg p-2 min-h-[150px] max-h-[300px] overflow-y-auto">
           {settings.blacklistedTags.length === 0 ? (
-            <p className="text-on-surface-variant text-sm text-center py-4">No blacklisted tags.</p>
+            <p className="text-on-surface-variant text-sm text-center py-4">{t('settings.blacklist.empty')}</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {settings.blacklistedTags.map((tag) => (
@@ -642,12 +664,13 @@ function NetworkTab({
   onProxyChange: (url: string) => void;
   onApplyDemo: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg">
         <div>
-          <span className="text-on-surface font-medium block">Enable Custom Proxy/Host</span>
-          <span className="text-xs text-on-surface-variant">Route requests through a custom URL to bypass CORS</span>
+          <span className="text-on-surface font-medium block">{t('settings.network.enableProxy')}</span>
+          <span className="text-xs text-on-surface-variant">{t('settings.network.proxyHint')}</span>
         </div>
         <Toggle enabled={settings.enableProxy} onToggle={() => onToggle('enableProxy')} />
       </div>
@@ -655,9 +678,9 @@ function NetworkTab({
       {settings.enableProxy && (
         <div className="p-4 border border-outline-variant rounded-lg bg-surface-container-low">
           <div className="flex justify-between items-end mb-1">
-            <label className="block text-sm font-medium text-on-surface-variant">Proxy / Base URL</label>
+            <label className="block text-sm font-medium text-on-surface-variant">{t('settings.network.proxyLabel')}</label>
             <button onClick={onApplyDemo} className="text-xs text-primary hover:underline">
-              Use Public Demo Proxy
+              {t('settings.network.useDemoProxy')}
             </button>
           </div>
           <input
@@ -665,11 +688,11 @@ function NetworkTab({
             value={settings.proxyUrl}
             onChange={(e) => onProxyChange(e.target.value)}
             className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
-            placeholder="http://localhost:8080 or https://corsproxy.io/?"
+            placeholder={t('settings.network.proxyPlaceholder')}
           />
           <p className="text-xs text-orange-500 mt-2">
             <i className="fas fa-exclamation-triangle mr-1" />
-            e621.net blocks direct browser requests. Use a CORS proxy.
+            {t('settings.network.proxyWarning')}
           </p>
         </div>
       )}
