@@ -616,29 +616,25 @@ function BlacklistTab({
         <input
           type="text"
           onKeyDown={onAddTag}
-          className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface mb-2"
+          className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface mb-3"
           placeholder={t('settings.blacklist.tagPlaceholder')}
         />
 
-        <div className="bg-surface-container-low border border-outline-variant/40 rounded-lg p-2 min-h-[150px] max-h-[300px] overflow-y-auto">
-          {settings.blacklistedTags.length === 0 ? (
-            <p className="text-on-surface-variant text-sm text-center py-4">{t('settings.blacklist.empty')}</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {settings.blacklistedTags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-1 bg-surface-container-high border border-outline-variant/40 rounded text-sm flex items-center shadow-elevation-1"
-                >
-                  {tag}
-                  <button onClick={() => onRemoveTag(tag)} className="ml-2 text-error hover:opacity-80">
-                    <i className="fas fa-times" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+        {settings.blacklistedTags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {settings.blacklistedTags.map((tag) => (
+              <span
+                key={tag}
+                className="py-1 text-sm flex items-center text-on-surface"
+              >
+                {tag}
+                <button onClick={() => onRemoveTag(tag)} className="ml-1.5 text-error hover:opacity-80">
+                  <i className="fas fa-times" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -277,12 +277,12 @@ describe('SettingsModal', () => {
     expect(tags.length).toBe(1);
   });
 
-  it('shows empty blacklist message when no tags', () => {
+  it('shows no tag chips when blacklist is empty', () => {
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings()} onUpdate={vi.fn()} />,
     );
     fireEvent.click(screen.getByText('settings.tabs.blacklist'));
-    expect(screen.getByText('settings.blacklist.empty')).toBeInTheDocument();
+    expect(screen.queryByText('settings.blacklist.empty')).not.toBeInTheDocument();
   });
 
   it('shows sync error when no account is set', async () => {
@@ -290,8 +290,8 @@ describe('SettingsModal', () => {
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings()} onUpdate={vi.fn()} />,
     );
     fireEvent.click(screen.getByText('settings.tabs.blacklist'));
-    // No sync button visible when no account — verify empty state
-    expect(screen.getByText('settings.blacklist.empty')).toBeInTheDocument();
+    // No sync button visible when no account
+    expect(screen.queryByTitle('settings.blacklist.refreshTitle')).not.toBeInTheDocument();
   });
 
   it('syncs blacklist and shows up to date message', async () => {
