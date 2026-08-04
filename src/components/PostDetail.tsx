@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, Key } from 'react';
+import { useEffect, useState, useCallback, useRef, Key } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Post, Settings, Comment } from '../types';
 import { api } from '../services/api';
@@ -25,6 +25,15 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [showCopied, setShowCopied] = useState(false);
+  const [fullImageLoaded, setFullImageLoaded] = useState(false);
+  const fullImgRef = useRef<HTMLImageElement>(null);
+
+  const thumbnailSrc = post.preview.url || post.sample.url || post.file.url || '';
+  const fullSrc = post.file.url || post.sample.url || post.preview.url || '';
+
+  useEffect(() => {
+    setFullImageLoaded(false);
+  }, [post.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -191,11 +200,28 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
               className="max-w-full max-h-full object-contain"
             />
           ) : (
-            <img
-              src={post.file.url || post.sample.url || post.preview.url || ''}
-              alt={`Post ${post.id}`}
-              className="max-w-full max-h-full object-contain"
-            />
+            <div className="relative w-full h-full flex items-center justify-center min-h-0 min-w-0">
+              <img
+                src={thumbnailSrc}
+                alt={`Post ${post.id}`}
+                className={cn(
+                  'w-full h-full object-contain transition-opacity duration-300',
+                  fullImageLoaded && fullSrc !== thumbnailSrc ? 'opacity-0' : 'opacity-100'
+                )}
+              />
+              {fullSrc !== thumbnailSrc && (
+                <img
+                  ref={fullImgRef}
+                  src={fullSrc}
+                  alt=""
+                  onLoad={() => setFullImageLoaded(true)}
+                  className={cn(
+                    'absolute w-full h-full object-contain transition-opacity duration-300',
+                    fullImageLoaded ? 'opacity-100' : 'opacity-0'
+                  )}
+                />
+              )}
+            </div>
           )}
 
           <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity">
