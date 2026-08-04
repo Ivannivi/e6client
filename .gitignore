@@ -29,3 +29,4 @@ android/.gradle/
 *.sln
 *.sw?
 .tmpbuild/
+coverage/
