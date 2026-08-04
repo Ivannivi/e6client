@@ -5,13 +5,26 @@ import { Ripple } from './Ripple';
 interface Props {
   onRandom: () => void;
   onRefresh: () => void;
+  onUpload?: () => void;
+  canUpload?: boolean;
   loading?: boolean;
 }
 
-export function QuickActions({ onRandom, onRefresh, loading }: Props) {
+export function QuickActions({ onRandom, onRefresh, onUpload, canUpload, loading }: Props) {
   const { t } = useTranslation();
   return (
     <div className="flex gap-1">
+      {canUpload && onUpload && (
+        <Ripple
+          className="rounded-full text-on-surface-variant"
+          onClick={onUpload}
+          disabled={loading}
+        >
+          <span className={cn('flex items-center justify-center w-10 h-10', loading && 'opacity-50')} title={t('quickActions.upload')}>
+            <i className="fas fa-upload" />
+          </span>
+        </Ripple>
+      )}
       <Ripple
         className="rounded-full text-on-surface-variant"
         onClick={onRandom}

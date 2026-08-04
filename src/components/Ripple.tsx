@@ -1,4 +1,4 @@
-import { useState, useRef, type PointerEvent, type ReactNode } from 'react';
+import { useState, useRef, type Key, type PointerEvent, type ReactNode } from 'react';
 import { cn } from '../utils';
 
 interface RippleInstance {
@@ -14,6 +14,7 @@ interface Props {
   color?: 'on-surface' | 'on-primary' | 'on-primary-container';
   onClick?: () => void;
   disabled?: boolean;
+  key?: Key;
 }
 
 const RIPPLE_COLOR = {

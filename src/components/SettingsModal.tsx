@@ -5,6 +5,8 @@ import { getActiveAccount, createAccount } from '../types';
 import { api } from '../services/api';
 import { cn } from '../utils';
 import { Ripple } from './Ripple';
+import { PrivacyTab } from './settings/PrivacyTab';
+import { AppearanceTab } from './settings/AppearanceTab';
 
 interface Props {
   isOpen: boolean;
@@ -13,7 +15,7 @@ interface Props {
   onUpdate: (s: Partial<Settings>) => void;
 }
 
-type Tab = 'account' | 'network' | 'blacklist';
+type Tab = 'account' | 'network' | 'blacklist' | 'storage' | 'privacy' | 'appearance';
 
 type SyncStatus = 'error' | 'success' | null;
 
@@ -21,6 +23,9 @@ const TABS: { id: Tab; labelKey: string; icon: string }[] = [
   { id: 'account', labelKey: 'settings.tabs.account', icon: 'fa-user' },
   { id: 'blacklist', labelKey: 'settings.tabs.blacklist', icon: 'fa-ban' },
   { id: 'network', labelKey: 'settings.tabs.network', icon: 'fa-network-wired' },
+  { id: 'storage', labelKey: 'settings.tabs.storage', icon: 'fa-folder-open' },
+  { id: 'appearance', labelKey: 'settings.tabs.appearance', icon: 'fa-palette' },
+  { id: 'privacy', labelKey: 'settings.tabs.privacy', icon: 'fa-lock' },
 ];
 
 export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
@@ -227,6 +232,27 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
               onToggle={toggle}
               onProxyChange={(url) => setLocal((prev) => ({ ...prev, proxyUrl: url }))}
               onApplyDemo={applyDemoProxy}
+            />
+          )}
+
+          {activeTab === 'storage' && (
+            <StorageTab
+              settings={local}
+              onDownloadPathChange={(path) => setLocal((prev) => ({ ...prev, downloadPath: path }))}
+            />
+          )}
+
+          {activeTab === 'appearance' && (
+            <AppearanceTab
+              settings={local}
+              onChange={(patch) => setLocal((prev) => ({ ...prev, ...patch }))}
+            />
+          )}
+
+          {activeTab === 'privacy' && (
+            <PrivacyTab
+              settings={local}
+              onChange={(patch) => setLocal((prev) => ({ ...prev, ...patch }))}
             />
           )}
         </div>
@@ -639,6 +665,38 @@ function BlacklistTab({
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function StorageTab({
+  settings,
+  onDownloadPathChange,
+}: {
+  settings: Settings;
+  onDownloadPathChange: (path: string) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-4 animate-fade-in">
+      <div>
+        <label className="block text-sm font-medium text-on-surface-variant mb-1">
+          {t('settings.storage.downloadPath')}
+        </label>
+        <input
+          type="text"
+          value={settings.downloadPath}
+          onChange={(e) => onDownloadPathChange(e.target.value)}
+          className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
+          placeholder={t('settings.storage.downloadPathPlaceholder')}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+        />
+        <p className="text-xs text-on-surface-variant mt-1">
+          {t('settings.storage.downloadPathHint')}
+        </p>
       </div>
     </div>
   );

@@ -1,7 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-
-const STORAGE_KEY = 'e6-search-history';
-const MAX_HISTORY = 20;
+import { getSearchHistory, addSearch, removeSearch, clearSearchHistory } from '../db';
 
 export interface SearchHistoryItem {
   query: string;
@@ -9,45 +7,47 @@ export interface SearchHistoryItem {
 }
 
 export function useSearchHistory() {
-  const [history, setHistory] = useState<SearchHistoryItem[]>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [history, setHistory] = useState<SearchHistoryItem[]>([]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-    } catch {
-      // Storage full or unavailable
-    }
-  }, [history]);
+    let cancelled = false;
+    getSearchHistory()
+      .then((rows) => {
+        if (!cancelled) setHistory(rows);
+      })
+      .catch((error) => {
+        console.error('e6client: failed to load search history', error);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const addToHistory = useCallback((query: string) => {
     const trimmed = query.trim();
     if (!trimmed) return;
 
-    setHistory((prev) => {
-      // Remove duplicate if exists
-      const filtered = prev.filter((item) => item.query !== trimmed);
-      // Add new item at the beginning
-      const newHistory = [
-        { query: trimmed, timestamp: Date.now() },
-        ...filtered,
-      ].slice(0, MAX_HISTORY);
-      return newHistory;
-    });
+    addSearch(trimmed)
+      .then(() => getSearchHistory())
+      .then(setHistory)
+      .catch((error) => {
+        console.error('e6client: failed to save search history', error);
+      });
   }, []);
 
   const removeFromHistory = useCallback((query: string) => {
-    setHistory((prev) => prev.filter((item) => item.query !== query));
+    removeSearch(query)
+      .then(() => getSearchHistory())
+      .then(setHistory)
+      .catch((error) => {
+        console.error('e6client: failed to remove search history entry', error);
+      });
   }, []);
 
   const clearHistory = useCallback(() => {
-    setHistory([]);
+    clearSearchHistory()
+      .then(() => setHistory([]))
+      .catch((error) => {
+        console.error('e6client: failed to clear search history', error);
+      });
   }, []);
 
   return {

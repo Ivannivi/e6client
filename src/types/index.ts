@@ -115,6 +115,10 @@ export interface Account {
   hostUrl: string; // Custom host URL (e.g., https://e621.net or https://e926.net)
 }
 
+export type ViewMode = 'grid' | 'list' | 'compact';
+
+export const DEFAULT_ACCENT_COLOR = '#2e76b4';
+
 export interface Settings {
   accounts: Account[];
   activeAccountId: string | null;
@@ -122,6 +126,26 @@ export interface Settings {
   enableProxy: boolean;
   safeMode: boolean;
   blacklistedTags: string[];
+  /** Directory used by the download manager. Platform-dependent: a
+   * subdirectory on Android, an absolute directory on Electron, ignored
+   * on web. Empty string = platform default. */
+  downloadPath: string;
+  viewMode: ViewMode;
+  /** i18next language override; empty = follow browser locale. */
+  language: string;
+  /** Persist fetched posts in IndexedDB for offline browsing. */
+  offlineEnabled: boolean;
+  // Appearance / i18n
+  theme: 'system' | 'light' | 'dark';
+  accentColor: string;
+  // Privacy / app lock
+  appLockEnabled: boolean;
+  appLockPin: string;
+  useBiometric: boolean;
+  secureAppSwitcher: boolean;
+  // Notifications
+  notificationsEnabled: boolean;
+  pushNotificationsEnabled: boolean;
 }
 
 export const createDefaultSettings = (): Settings => ({
@@ -131,6 +155,18 @@ export const createDefaultSettings = (): Settings => ({
   enableProxy: false,
   safeMode: false,
   blacklistedTags: [],
+  downloadPath: '',
+  viewMode: 'grid',
+  language: '',
+  offlineEnabled: false,
+  theme: 'system',
+  accentColor: DEFAULT_ACCENT_COLOR,
+  appLockEnabled: false,
+  appLockPin: '',
+  useBiometric: false,
+  secureAppSwitcher: false,
+  notificationsEnabled: false,
+  pushNotificationsEnabled: false,
 });
 
 export const getActiveAccount = (settings: Settings): Account | null => {

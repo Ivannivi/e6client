@@ -7,24 +7,32 @@ import { PostCard } from './components/PostCard';
 import { PostListItem } from './components/PostListItem';
 import { PostDetail } from './components/PostDetail';
 import { SettingsModal } from './components/SettingsModal';
+import { UploadModal } from './components/UploadModal';
+import { AppLock } from './components/AppLock';
 import { ToastContainer } from './components/Toast';
 import { SearchHistory } from './components/SearchHistory';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { QuickActions } from './components/QuickActions';
 import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
 import { useSettings } from './hooks/useSettings';
-import { 
-  useDebounce, 
-  useColumnCount, 
+import {
+  useDebounce,
+  useColumnCount,
   useIntersectionObserver,
   useSearchHistory,
   useKeyboardShortcuts,
   useToast,
   useViewMode,
+  useAppLock,
+  useSecureAppSwitcher,
+  useDeepLinks,
+  useOfflineCache,
+  usePullToRefresh,
 } from './hooks';
 import { isPostBlacklisted, distributeToColumns, cn } from './utils';
 import { TAG_STYLES } from './config';
 import { Ripple } from './components/Ripple';
+import { addBrowsingVisit } from './db';
 
 type Tab = 'home' | 'favorites';
 
@@ -41,10 +49,17 @@ type NavEntry =
 
 export default function App() {
   const { t } = useTranslation();
-  const { settings, updateSettings } = useSettings();
+  const { settings, updateSettings, ready } = useSettings();
   const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
   const { toasts, success, error: showError, info, removeToast } = useToast();
-  const { viewMode, setViewMode, toggleViewMode } = useViewMode();
+  const { viewMode, setViewMode, toggleViewMode } = useViewMode(settings, updateSettings);
+  const { locked, unlock } = useAppLock(settings);
+  const secureSwitcher = useSecureAppSwitcher(settings);
+  const { postId: deepLinkId, clear: clearDeepLink } = useDeepLinks(settings);
+  const pullToRefresh = usePullToRefresh(() => fetchPostsRef.current(true));
+  const activeAccount = getActiveAccount(settings);
+
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const [tab, setTab] = useState<Tab>('home');
   const [posts, setPosts] = useState<Post[]>([]);
@@ -52,6 +67,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   const [query, setQuery] = useState('');
+  const cacheKey = `${tab}:${query}`;
+  const { loadCached } = useOfflineCache(settings, posts, cacheKey);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
@@ -111,18 +128,36 @@ export default function App() {
           setPage((p) => p + 1);
         }
       } catch (err) {
-        if (reset) setError(parseApiError(err));
+        if (reset) {
+          if (settings.offlineEnabled) {
+            const cacheKey = `${overrideTab}:${overrideQuery}`;
+            const cached = await loadCached(cacheKey);
+            if (cached && cached.length > 0) {
+              setPosts(cached);
+              setHasMore(false);
+              return;
+            }
+          }
+          setError(parseApiError(err));
+        }
       } finally {
         setLoading(false);
       }
     },
-    [settings, query, page, loading, tab, hasMore]
+    [settings, query, page, loading, tab, hasMore, loadCached]
   );
 
+  // Latest fetchPosts kept in a ref so pull-to-refresh can call it without
+  // re-attaching pointer listeners whenever the callback identity changes.
+  const fetchPostsRef = useRef(fetchPosts);
   useEffect(() => {
-    fetchPosts(true, 'home', '');
+    fetchPostsRef.current = fetchPosts;
+  }, [fetchPosts]);
+
+  useEffect(() => {
+    if (ready) fetchPosts(true, 'home', '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ready]);
 
   // Forward navigation to a (possibly new) tab/query - search submit, tag tap, tab switch.
   const navigate = useCallback((newTab: Tab, newQuery: string) => {
@@ -138,6 +173,9 @@ export default function App() {
   const openDetail = useCallback((post: Post) => {
     navStack.current.push({ type: 'detail', post });
     setSelectedPost(post);
+    addBrowsingVisit(post.id).catch((error) => {
+      console.error('e6client: failed to record browsing visit', error);
+    });
   }, []);
 
   // One step back through the stack - used by the hardware/gesture back
@@ -216,6 +254,29 @@ export default function App() {
       setLoading(false);
     }
   }, [settings, info, showError, openDetail]);
+
+  // Deep links (custom scheme / appUrlOpen / ?post=<id>) open a post directly.
+  useEffect(() => {
+    if (deepLinkId == null) return;
+
+    let cancelled = false;
+    api
+      .getPost(settings, deepLinkId)
+      .then((post) => {
+        if (cancelled) return;
+        openDetail(post);
+      })
+      .catch(() => {
+        if (!cancelled) showError(t('app.deepLinkError'));
+      })
+      .finally(() => {
+        if (!cancelled) clearDeepLink();
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [deepLinkId, settings, openDetail, clearDeepLink, showError, t]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts([
@@ -404,6 +465,8 @@ export default function App() {
           <QuickActions
             onRandom={fetchRandomPost}
             onRefresh={() => fetchPosts(true)}
+            onUpload={() => setUploadOpen(true)}
+            canUpload={!!activeAccount?.username && !!activeAccount?.apiKey}
             loading={loading}
           />
 
@@ -419,9 +482,11 @@ export default function App() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 container mx-auto px-4 py-6">
-        <div className="hidden md:flex items-center justify-between mb-6">
-          <TabBar active={tab} onChange={handleTabChange} settings={settings} />
+      <div ref={pullToRefresh.ref} className="relative flex-1">
+        {pullToRefresh.indicator}
+        <main className="container mx-auto px-4 py-6">
+          <div className="hidden md:flex items-center justify-between mb-6">
+            <TabBar active={tab} onChange={handleTabChange} settings={settings} />
           <div className="flex items-center gap-4">
             <ViewModeToggle viewMode={viewMode} onChange={setViewMode} />
             <Ripple
@@ -497,8 +562,9 @@ export default function App() {
           {!hasMore && posts.length > 0 && !loading && (
             <p className="text-on-surface-variant text-sm">{t('app.endReached')}</p>
           )}
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
 
       {/* Modals */}
       {selectedPost && (
@@ -526,11 +592,26 @@ export default function App() {
         onClose={() => setShortcutsHelpOpen(false)}
       />
 
+      {/* Upload */}
+      <UploadModal
+        isOpen={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        settings={settings}
+      />
+
       {/* Toast notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       {/* Mobile navigation */}
       <MobileNav active={tab} onTabChange={handleTabChange} onSettings={() => setSettingsOpen(true)} settings={settings} />
+
+      {/* App lock overlay */}
+      <AppLock enabled={locked} pin={settings.appLockPin} onUnlock={unlock} />
+
+      {/* Privacy cover while the app is hidden behind the app switcher */}
+      {settings.secureAppSwitcher && secureSwitcher.hidden && (
+        <div className="fixed inset-0 z-[200] bg-surface" aria-hidden />
+      )}
     </div>
   );
 }

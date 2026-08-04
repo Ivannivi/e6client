@@ -15,8 +15,16 @@ dist-ssr
 # Android
 android/app/build/
 android/.gradle/
+android/app/src/main/assets/public/
 *.apk
 *.aar
+
+# iOS
+ios/App/Pods/
+ios/App/App/public/
+
+# Tauri
+src-tauri/target/
 
 # Editor directories and files
 .vscode/*

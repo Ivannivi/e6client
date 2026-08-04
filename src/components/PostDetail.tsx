@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import type { Post, Settings, Comment } from '../types';
 import { api } from '../services/api';
 import { RATING, TAG_STYLES } from '../config';
-import { formatFileSize, cn, downloadFile, shareContent, generatePostFilename, copyToClipboard } from '../utils';
+import { formatFileSize, cn, shareContent, generatePostFilename, copyToClipboard } from '../utils';
+import { saveDownload } from '../services/download';
 
 interface Props {
   post: Post;
@@ -79,14 +80,18 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
     
     try {
       const filename = generatePostFilename(post);
-      await downloadFile(post.file.url, filename, setDownloadProgress);
+      await saveDownload(post.file.url, {
+        filename,
+        directory: settings.downloadPath,
+        onProgress: (p) => setDownloadProgress(p.percent),
+      });
     } catch (error) {
       console.error('Download failed:', error);
     } finally {
       setDownloading(false);
       setDownloadProgress(0);
     }
-  }, [post, downloading]);
+  }, [post, downloading, settings.downloadPath]);
 
   const handleShare = useCallback(async () => {
     const url = `https://e621.net/posts/${post.id}`;

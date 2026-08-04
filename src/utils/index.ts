@@ -38,6 +38,10 @@ export function isAnimatedFile(extension: string): boolean {
   return ['webm', 'mp4', 'gif'].includes(extension.toLowerCase());
 }
 
+export function isSvgFile(extension: string): boolean {
+  return ['svg', 'svgz'].includes(extension.toLowerCase());
+}
+
 export function getAspectRatio(width: number, height: number): string {
   return width && height ? `${width} / ${height}` : 'auto';
 }
@@ -104,57 +108,6 @@ export function replaceLastSearchTerm(query: string, newTerm: string): string {
 
 export function cn(...classes: (string | boolean | undefined)[]): string {
   return classes.filter(Boolean).join(' ');
-}
-
-/**
- * Download a file from a URL
- */
-export async function downloadFile(
-  url: string,
-  filename: string,
-  onProgress?: (progress: number) => void
-): Promise<void> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Download failed');
-
-    const contentLength = response.headers.get('content-length');
-    const total = contentLength ? parseInt(contentLength, 10) : 0;
-
-    const reader = response.body?.getReader();
-    if (!reader) throw new Error('Unable to read response');
-
-    const chunks: Uint8Array[] = [];
-    let received = 0;
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      chunks.push(value);
-      received += value.length;
-
-      if (total && onProgress) {
-        onProgress(Math.round((received / total) * 100));
-      }
-    }
-
-    const blob = new Blob(chunks);
-    const blobUrl = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(blobUrl);
-  } catch (error) {
-    // Fallback: open in new tab
-    window.open(url, '_blank');
-    throw error;
-  }
 }
 
 /**

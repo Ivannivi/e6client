@@ -5,6 +5,11 @@ export { useSearchHistory } from './useSearchHistory';
 export { useKeyboardShortcuts, SHORTCUT_DESCRIPTIONS } from './useKeyboardShortcuts';
 export { useToast } from './useToast';
 export { useViewMode } from './useViewMode';
+export { useAppLock } from './useAppLock';
+export { useSecureAppSwitcher } from './useSecureAppSwitcher';
+export { useDeepLinks } from './useDeepLinks';
+export { useOfflineCache } from './useOfflineCache';
+export { usePullToRefresh } from './usePullToRefresh';
 export type { ViewMode } from './useViewMode';
 export type { Toast } from './useToast';
 
@@ -60,31 +65,4 @@ export function useIntersectionObserver(
 
     return () => observer.disconnect();
   }, [ref, callback, threshold, rootMargin]);
-}
-
-export function useLocalStorage<T>(
-  key: string,
-  initialValue: T
-): [T, (value: T | ((prev: T) => T)) => void] {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    try {
-      const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch {
-      return initialValue;
-    }
-  });
-
-  const setValue = useCallback(
-    (value: T | ((prev: T) => T)) => {
-      setStoredValue((prev) => {
-        const next = value instanceof Function ? value(prev) : value;
-        localStorage.setItem(key, JSON.stringify(next));
-        return next;
-      });
-    },
-    [key]
-  );
-
-  return [storedValue, setValue];
 }

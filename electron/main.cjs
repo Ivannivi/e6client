@@ -1,9 +1,29 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain } = require('electron');
+const fs = require('fs');
 const path = require('path');
 const isDev = process.env.NODE_ENV === 'development';
 
 // Keep a global reference of the window object
 let mainWindow;
+
+// Save a file through the download manager. Relative paths are resolved
+// against the system downloads directory, absolute paths are used as-is.
+ipcMain.handle('save-file', async (_event, { path: filePath, data }) => {
+  try {
+    let target = String(filePath || '');
+    target = path.normalize(target);
+    if (!path.isAbsolute(target)) {
+      target = path.join(app.getPath('downloads'), path.basename(target));
+    }
+    await fs.promises.mkdir(path.dirname(target), { recursive: true });
+    await fs.promises.writeFile(target, Buffer.from(data));
+    return { ok: true, path: target };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('get-default-download-path', () => app.getPath('downloads'));
 
 function createWindow() {
   // Create the browser window
