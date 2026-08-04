@@ -1,3 +1,4 @@
+import { useRef, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ViewMode } from '../hooks/useViewMode';
 import { cn } from '../utils';
@@ -15,21 +16,48 @@ const VIEW_MODES: { mode: ViewMode; icon: string; labelKey: string }[] = [
 
 export function ViewModeToggle({ viewMode, onChange }: Props) {
   const { t } = useTranslation();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+  const [popKey, setPopKey] = useState(0);
+
+  useEffect(() => {
+    const activeBtn = btnRefs.current[viewMode];
+    const container = containerRef.current;
+    if (activeBtn && container) {
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = activeBtn.getBoundingClientRect();
+      setIndicator({
+        left: btnRect.left - containerRect.left,
+        width: btnRect.width,
+      });
+    }
+  }, [viewMode]);
+
   return (
-    <div className="flex rounded-full bg-surface-container p-1">
+    <div ref={containerRef} className="relative flex rounded-full bg-surface-container p-1">
+      {/* Sliding indicator */}
+      <div
+        className="absolute top-1 bottom-1 rounded-full bg-secondary-container transition-all duration-300 ease-out"
+        style={{ left: indicator.left, width: indicator.width }}
+      />
       {VIEW_MODES.map(({ mode, icon, labelKey }) => (
         <button
           key={mode}
-          onClick={() => onChange(mode)}
+          ref={(el) => { btnRefs.current[mode] = el; }}
+          onClick={() => { onChange(mode); setPopKey((k) => k + 1); }}
           className={cn(
-            'px-3 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-2',
+            'relative z-10 px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 flex items-center gap-2',
             viewMode === mode
-              ? 'bg-secondary-container text-on-secondary-container'
+              ? 'text-on-secondary-container'
               : 'text-on-surface-variant hover:text-on-surface'
           )}
           title={t(labelKey)}
         >
-          <i className={`fas ${icon}`} />
+          <i
+            key={viewMode === mode ? popKey : undefined}
+            className={cn('fas', icon, viewMode === mode && 'animate-view-mode-pop')}
+          />
           <span className="hidden sm:inline">{t(labelKey)}</span>
         </button>
       ))}

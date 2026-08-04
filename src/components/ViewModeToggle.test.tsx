@@ -17,13 +17,19 @@ describe('ViewModeToggle', () => {
     expect(screen.getByTitle('viewMode.compact')).toBeInTheDocument();
   });
 
-  it('highlights the active mode with bg-secondary-container class', () => {
+  it('highlights the active mode with text-on-secondary-container class', () => {
     render(<ViewModeToggle viewMode="list" onChange={vi.fn()} />);
     const listBtn = screen.getByTitle('viewMode.list');
-    expect(listBtn.className).toContain('bg-secondary-container');
+    expect(listBtn.className).toContain('text-on-secondary-container');
 
     const gridBtn = screen.getByTitle('viewMode.grid');
-    expect(gridBtn.className).not.toContain('bg-secondary-container');
+    expect(gridBtn.className).not.toContain('text-on-secondary-container');
+  });
+
+  it('renders a sliding indicator with bg-secondary-container', () => {
+    const { container } = render(<ViewModeToggle viewMode="grid" onChange={vi.fn()} />);
+    const indicator = container.querySelector('.bg-secondary-container');
+    expect(indicator).toBeTruthy();
   });
 
   it('calls onChange with the selected mode when a button is clicked', () => {

@@ -180,6 +180,22 @@
   }
 }
 
+@keyframes view-mode-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-view-mode-pop {
+  animation: view-mode-pop 0.3s ease-out;
+}
+
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(46, 118, 180, 0.4);
