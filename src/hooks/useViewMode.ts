@@ -1,34 +1,24 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
+import type { Settings } from '../types';
 
 export type ViewMode = 'grid' | 'list' | 'compact';
 
-const STORAGE_KEY = 'e6-view-mode';
+const MODES: ViewMode[] = ['grid', 'list', 'compact'];
 
-export function useViewMode() {
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return (stored as ViewMode) || 'grid';
-    } catch {
-      return 'grid';
-    }
-  });
+export function useViewMode(
+  settings: Settings,
+  updateSettings: (patch: Partial<Settings>) => void
+) {
+  const viewMode = settings.viewMode;
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, viewMode);
-    } catch {
-      // Storage unavailable
-    }
-  }, [viewMode]);
+  const setViewMode = useCallback((mode: ViewMode) => {
+    updateSettings({ viewMode: mode });
+  }, [updateSettings]);
 
   const toggleViewMode = useCallback(() => {
-    setViewMode((prev) => {
-      const modes: ViewMode[] = ['grid', 'list', 'compact'];
-      const currentIndex = modes.indexOf(prev);
-      return modes[(currentIndex + 1) % modes.length];
-    });
-  }, []);
+    const currentIndex = MODES.indexOf(viewMode);
+    updateSettings({ viewMode: MODES[(currentIndex + 1) % MODES.length] });
+  }, [viewMode, updateSettings]);
 
   return { viewMode, setViewMode, toggleViewMode };
 }

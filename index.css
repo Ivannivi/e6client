@@ -13,7 +13,8 @@
  * contrast in both themes.
  */
 :root {
-  --md-primary: #2e76b4;
+  --accent-color: #2e76b4;
+  --md-primary: var(--accent-color);
   --md-on-primary: #ffffff;
   --md-primary-container: #d3e4ff;
   --md-on-primary-container: #001c37;
@@ -135,6 +136,22 @@
 }
 
 /* Custom animations */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-6px);
+  }
+  40%, 80% {
+    transform: translateX(6px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import type { Settings, Post, Comment, User, TagSuggestion, Score, Tags, PostFlags, Rating } from '../types';
 import { getActiveAccount } from '../types';
 import { APP_CONFIG } from '../config';
+import { cachePost, cachePosts, cachePage, getCachedPage, getCachedPost } from '../db';
 
 export interface RawPostV2 {
   id: number;
@@ -172,6 +173,11 @@ export const api = {
     page = 1,
     limit: number = APP_CONFIG.api.defaultPageSize
   ): Promise<Post[]> {
+    const activeAccount = getActiveAccount(settings);
+    const baseUrl = activeAccount?.hostUrl || APP_CONFIG.api.baseUrl;
+    // Cache key is host-scoped so switching accounts/hosts never serves
+    // another provider's page.
+    const cacheKey = `${baseUrl}::${tags}::${page}::${limit}`;
     const url = buildApiUrl('/posts.json', {
       tags,
       page: String(page),
@@ -180,10 +186,43 @@ export const api = {
       mode: 'extended',
     }, settings);
 
-    return fetchWithRetry(async () => {
-      const res = await http.get<RawPostV2[]>(url);
-      return res.data.map(mapV2Post);
-    });
+    try {
+      const posts = await fetchWithRetry(async () => {
+        const res = await http.get<RawPostV2[]>(url);
+        return res.data.map(mapV2Post);
+      });
+      // Write-through metadata cache (fire-and-forget).
+      cachePosts(posts).catch(() => {});
+      cachePage(cacheKey, posts).catch(() => {});
+      return posts;
+    } catch (error) {
+      // Offline/server failure: serve the last cached page for this query.
+      const cached = await getCachedPage(cacheKey);
+      if (cached) return cached;
+      throw error;
+    }
+  },
+
+  /**
+   * Single-post fetch. Serves cached metadata instantly when available
+   * and revalidates from the network in the background.
+   */
+  async getPost(settings: Settings, id: number): Promise<Post> {
+    const cached = await getCachedPost(id);
+    try {
+      const url = buildApiUrl(`/posts/${id}.json`, {
+        v2: 'true',
+        mode: 'extended',
+      }, settings);
+      const res = await http.get<RawPostV2 | { post: RawPostV2 }>(url);
+      const raw = (res.data as { post?: RawPostV2 }).post ?? (res.data as RawPostV2);
+      const post = mapV2Post(raw);
+      cachePost(post).catch(() => {});
+      return post;
+    } catch (error) {
+      if (cached) return cached;
+      throw error;
+    }
   },
 
   async searchTags(settings: Settings, query: string): Promise<TagSuggestion[]> {
@@ -258,5 +297,43 @@ export const api = {
     } catch {
       return [];
     }
+  },
+
+  async createPost(
+    settings: Settings,
+    payload: {
+      file: File;
+      tags: string;
+      rating: 's' | 'q' | 'e';
+      source?: string;
+    }
+  ): Promise<number> {
+    const activeAccount = getActiveAccount(settings);
+    if (!activeAccount?.username || !activeAccount?.apiKey) {
+      throw new Error('Upload requires an account with username and API key.');
+    }
+
+    const url = buildApiUrl('/uploads.json', {}, settings);
+
+    const formData = new FormData();
+    formData.append('upload[file]', payload.file);
+    formData.append('upload[tag_string]', payload.tags);
+    formData.append('upload[rating]', payload.rating);
+    if (payload.source) {
+      formData.append('upload[source]', payload.source);
+    }
+
+    return fetchWithRetry(async () => {
+      const res = await http.post(url, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const responseData = res.data as { post?: { id: number }; id?: number };
+      const postId = responseData.post?.id ?? responseData.id;
+      if (!postId) {
+        throw new Error('Upload succeeded but no post ID was returned.');
+      }
+      return postId;
+    });
   },
 };

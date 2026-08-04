@@ -9,6 +9,7 @@
     "endReached": "You've reached the end!",
     "randomPostSuccess": "Loaded a random post!",
     "randomPostError": "Failed to load random post",
+    "deepLinkError": "Could not open the linked post",
     "usernameRequired": "Please set your username in Settings > Account to view favorites."
   },
   "tabs": {
@@ -34,7 +35,8 @@
   },
   "quickActions": {
     "randomPost": "Random Post (X)",
-    "refresh": "Refresh (R)"
+    "refresh": "Refresh (R)",
+    "upload": "Upload"
   },
   "settings": {
     "title": "Settings",
@@ -43,7 +45,18 @@
     "tabs": {
       "account": "Account",
       "blacklist": "Blacklist",
-      "network": "Network"
+      "network": "Network",
+      "storage": "Storage",
+      "appearance": "Appearance",
+      "privacy": "Privacy"
+    },
+    "appearance": {
+      "theme": "Theme",
+      "themeSystem": "System",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "accentColor": "Accent Color",
+      "language": "Language"
     },
     "account": {
       "title": "Accounts",
@@ -95,6 +108,11 @@
       "useDemoProxy": "Use Public Demo Proxy",
       "proxyPlaceholder": "http://localhost:8080 or https://corsproxy.io/?",
       "proxyWarning": "e621.net blocks direct browser requests. Use a CORS proxy."
+    },
+    "storage": {
+      "downloadPath": "Download location",
+      "downloadPathPlaceholder": "e.g. /home/user/Downloads/e6client",
+      "downloadPathHint": "Empty = platform default. Desktop: absolute folder path; Android: folder under Documents; Web: your browser download folder."
     }
   },
   "postCard": {
@@ -147,5 +165,10 @@
     "grid": "Grid",
     "list": "List",
     "compact": "Compact"
+  },
+  "pullToRefresh": {
+    "pull": "Pull to refresh",
+    "release": "Release to refresh",
+    "refreshing": "Refreshing..."
   }
 }

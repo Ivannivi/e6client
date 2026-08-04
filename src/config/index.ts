@@ -20,6 +20,8 @@ export const APP_CONFIG = {
   },
   storage: {
     settingsKey: 'e6-settings',
+    searchHistoryKey: 'e6-search-history',
+    viewModeKey: 'e6-view-mode',
   },
 } as const;
 

@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { APP_CONFIG } from './config';
+import { db, SETTINGS_ROW_KEY } from './db';
 
 const LOAD_PATH = '/locales/{{lng}}/{{ns}}.json';
 
@@ -43,6 +44,20 @@ function getStoredLanguage(): string | undefined {
   return undefined;
 }
 
+/**
+ * Apply the persisted language override once settings load from the
+ * database (the localStorage fast-path above is gone after migration).
+ */
+export async function applyStoredLanguage(): Promise<void> {
+  try {
+    const row = await db.settings.get(SETTINGS_ROW_KEY);
+    const language = row?.value.language;
+    if (language) await i18n.changeLanguage(language);
+  } catch {
+    // Database unavailable - keep the detected language.
+  }
+}
+
 i18n
   .use(fetchBackend)
   .use(LanguageDetector)
@@ -56,9 +71,7 @@ i18n
       loadPath: LOAD_PATH,
     },
     detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
-      lookupLocalStorage: 'i18nextLng',
+      order: ['navigator'],
     },
     interpolation: {
       escapeValue: false,
