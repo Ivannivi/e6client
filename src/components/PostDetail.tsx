@@ -200,7 +200,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
               className="max-w-full max-h-full object-contain"
             />
           ) : (
-            <div className="relative max-w-full max-h-full">
+            <div className="relative flex items-center justify-center w-full h-full">
               <img
                 src={thumbnailSrc}
                 alt={`Post ${post.id}`}
@@ -216,7 +216,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                   alt=""
                   onLoad={() => setFullImageLoaded(true)}
                   className={cn(
-                    'absolute inset-0 w-full h-full max-w-full max-h-full object-contain transition-opacity duration-300',
+                    'absolute max-w-full max-h-full object-contain transition-opacity duration-300',
                     fullImageLoaded ? 'opacity-100' : 'opacity-0'
                   )}
                 />
