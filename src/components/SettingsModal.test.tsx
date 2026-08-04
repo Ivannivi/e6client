@@ -138,7 +138,9 @@ describe('SettingsModal', () => {
     );
     const setActiveBtn = screen.getAllByTitle('settings.account.setActive')[0];
     fireEvent.click(setActiveBtn);
-    expect(screen.getAllByText('settings.account.active')).toHaveLength(1);
+    // The active account shows a green dot badge on its pfp
+    const greenDots = document.querySelectorAll('.bg-green-500.rounded-full');
+    expect(greenDots).toHaveLength(1);
   });
 
   it('does not show a safe mode toggle in blacklist tab', () => {
@@ -395,19 +397,20 @@ describe('SettingsModal', () => {
     expect(input.value).toBe('https://proxy.example.com');
   });
 
-  it('shows active account indicator', () => {
+  it('shows active account indicator as a green dot on the pfp', () => {
     const account = makeAccount({ name: 'Active' });
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
-    expect(screen.getByText('settings.account.active')).toBeInTheDocument();
+    const greenDots = document.querySelectorAll('.bg-green-500.rounded-full');
+    expect(greenDots).toHaveLength(1);
   });
 
-  it('shows using account info when account is active', () => {
+  it('does not show the using account banner', () => {
     const account = makeAccount({ name: 'MyAcc', hostUrl: 'https://e621.net' });
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
-    expect(screen.getByText('settings.account.usingAccount')).toBeInTheDocument();
+    expect(screen.queryByText('settings.account.usingAccount')).not.toBeInTheDocument();
   });
 });
