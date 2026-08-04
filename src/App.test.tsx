@@ -280,7 +280,7 @@ describe('App', () => {
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
     apiMock.getPosts.mockClear();
-    fireEvent.click(screen.getByText('e6'));
+    fireEvent.click(screen.getByAltText('e6client'));
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
   });
 
