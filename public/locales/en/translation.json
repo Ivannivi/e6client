@@ -71,8 +71,6 @@
       "saveAccount": "Save Account"
     },
     "blacklist": {
-      "nsfwMode": "NSFW Mode",
-      "nsfwHint": "Enable adult content (Questionable/Explicit)",
       "safeMode": "Safe Mode",
       "safeHint": "Blur Explicit/Questionable posts in results",
       "blacklistedTags": "Blacklisted Tags",

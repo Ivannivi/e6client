@@ -120,7 +120,6 @@ export interface Settings {
   activeAccountId: string | null;
   proxyUrl: string;
   enableProxy: boolean;
-  nsfwEnabled: boolean;
   safeMode: boolean;
   blacklistedTags: string[];
 }
@@ -130,7 +129,6 @@ export const createDefaultSettings = (): Settings => ({
   activeAccountId: null,
   proxyUrl: 'https://corsproxy.io/?',
   enableProxy: false,
-  nsfwEnabled: false,
   safeMode: false,
   blacklistedTags: [],
 });
@@ -138,6 +136,19 @@ export const createDefaultSettings = (): Settings => ({
 export const getActiveAccount = (settings: Settings): Account | null => {
   if (!settings.activeAccountId) return null;
   return settings.accounts.find((a) => a.id === settings.activeAccountId) || null;
+};
+
+/**
+ * The provider (host) decides whether explicit content is allowed:
+ * e926.net only serves safe content, every other host (e.g. e621.net)
+ * is treated as full-content. This replaces the old NSFW toggle.
+ */
+export const isSafeProvider = (hostUrl: string): boolean => {
+  try {
+    return new URL(hostUrl).hostname === 'e926.net';
+  } catch {
+    return false;
+  }
 };
 
 export const createAccount = (partial: Partial<Account> = {}): Account => ({

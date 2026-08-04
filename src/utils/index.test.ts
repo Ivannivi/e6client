@@ -107,21 +107,21 @@ describe('isPostBlacklisted', () => {
 });
 
 describe('buildSearchQuery', () => {
-  it('adds rating:s only when NSFW is disabled', () => {
-    expect(buildSearchQuery('fox', { tab: 'home', nsfwEnabled: false })).toBe('rating:s fox');
-    expect(buildSearchQuery('fox', { tab: 'home', nsfwEnabled: true })).toBe('fox');
+  it('adds rating:s only for safe providers (e926)', () => {
+    expect(buildSearchQuery('fox', { tab: 'home', hostUrl: 'https://e926.net' })).toBe('rating:s fox');
+    expect(buildSearchQuery('fox', { tab: 'home', hostUrl: 'https://e621.net' })).toBe('fox');
   });
 
   it('prefixes fav: for the favorites tab when a username is set', () => {
-    expect(buildSearchQuery('', { tab: 'favorites', username: 'ivan', nsfwEnabled: true })).toBe('fav:ivan');
+    expect(buildSearchQuery('', { tab: 'favorites', username: 'ivan', hostUrl: 'https://e621.net' })).toBe('fav:ivan');
   });
 
   it('omits fav: on the favorites tab without a username', () => {
-    expect(buildSearchQuery('fox', { tab: 'favorites', nsfwEnabled: true })).toBe('fox');
+    expect(buildSearchQuery('fox', { tab: 'favorites', hostUrl: 'https://e621.net' })).toBe('fox');
   });
 
   it('trims whitespace-only base queries', () => {
-    expect(buildSearchQuery('   ', { tab: 'home', nsfwEnabled: true })).toBe('');
+    expect(buildSearchQuery('   ', { tab: 'home', hostUrl: 'https://e621.net' })).toBe('');
   });
 });
 
