@@ -570,18 +570,9 @@ function BlacklistTab({
 }) {
   const { t } = useTranslation();
   const activeAccount = getActiveAccount(settings);
-  
+
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Safe Mode (blur) */}
-      <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg">
-        <div>
-          <span className="text-on-surface block font-medium">{t('settings.blacklist.safeMode')}</span>
-          <span className="text-xs text-on-surface-variant">{t('settings.blacklist.safeHint')}</span>
-        </div>
-        <Toggle enabled={settings.safeMode} onToggle={() => onToggle('safeMode')} color="bg-green-500" />
-      </div>
-
       {/* Tag list */}
       <div>
         <div className="flex justify-between items-center mb-2">

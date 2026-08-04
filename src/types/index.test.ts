@@ -9,23 +9,24 @@ import {
 import { makeAccount, makeSettings } from '../test/factories';
 
 describe('createDefaultSettings', () => {
-  it('returns a fresh settings object with safe defaults', () => {
+  it('returns settings with a default e926 guest account', () => {
     const settings = createDefaultSettings();
-    expect(settings).toEqual({
-      accounts: [],
-      activeAccountId: null,
-      proxyUrl: 'https://corsproxy.io/?',
-      enableProxy: false,
-      safeMode: false,
-      blacklistedTags: [],
-    });
+    expect(settings.accounts).toHaveLength(1);
+    expect(settings.accounts[0].hostUrl).toBe('https://e926.net');
+    expect(settings.accounts[0].username).toBe('');
+    expect(settings.accounts[0].apiKey).toBe('');
+    expect(settings.activeAccountId).toBe(settings.accounts[0].id);
+    expect(settings.proxyUrl).toBe('https://corsproxy.io/?');
+    expect(settings.enableProxy).toBe(false);
+    expect(settings.safeMode).toBe(false);
+    expect(settings.blacklistedTags).toEqual([]);
   });
 
   it('returns a new object every call (no shared references)', () => {
     const a = createDefaultSettings();
     const b = createDefaultSettings();
     a.accounts.push(makeAccount());
-    expect(b.accounts).toHaveLength(0);
+    expect(b.accounts).toHaveLength(1);
   });
 });
 

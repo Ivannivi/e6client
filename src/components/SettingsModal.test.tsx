@@ -81,7 +81,7 @@ describe('SettingsModal', () => {
     );
     expect(screen.getByText('settings.account.title')).toBeInTheDocument();
     fireEvent.click(screen.getByText('settings.tabs.blacklist'));
-    expect(screen.getByText('settings.blacklist.safeMode')).toBeInTheDocument();
+    expect(screen.getByText('settings.blacklist.blacklistedTags')).toBeInTheDocument();
     fireEvent.click(screen.getByText('settings.tabs.network'));
     expect(screen.getByText('settings.network.enableProxy')).toBeInTheDocument();
   });
@@ -141,14 +141,12 @@ describe('SettingsModal', () => {
     expect(screen.getAllByText('settings.account.active')).toHaveLength(1);
   });
 
-  it('toggles safe mode in blacklist tab', () => {
+  it('does not show a safe mode toggle in blacklist tab', () => {
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings()} onUpdate={vi.fn()} />,
     );
     fireEvent.click(screen.getByText('settings.tabs.blacklist'));
-    const toggle = document.querySelector('.bg-outline') as HTMLElement;
-    fireEvent.click(toggle);
-    expect(document.querySelector('.bg-green-500')).toBeTruthy();
+    expect(screen.queryByText('settings.blacklist.safeMode')).not.toBeInTheDocument();
   });
 
   it('adds a blacklisted tag on Enter', () => {

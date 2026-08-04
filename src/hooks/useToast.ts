@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { generateId } from '../types';
 
 export interface Toast {
   id: string;
@@ -12,7 +13,7 @@ export function useToast() {
 
   const addToast = useCallback(
     (message: string, type: Toast['type'] = 'info', duration = 3000) => {
-      const id = crypto.randomUUID();
+      const id = generateId();
       const toast: Toast = { id, message, type, duration };
 
       setToasts((prev) => [...prev, toast]);
