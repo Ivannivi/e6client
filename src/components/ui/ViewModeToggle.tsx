@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ViewMode } from '../hooks/useViewMode';
-import { cn } from '../utils';
+import type { ViewMode } from '../../hooks/useViewMode';
+import { cn } from '../../utils';
 
 interface Props {
   viewMode: ViewMode;

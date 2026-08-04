@@ -3,15 +3,15 @@ import { useTranslation } from 'react-i18next';
 import type { Post, Settings, TagSuggestion } from './types';
 import { getActiveAccount, isSafeProvider } from './types';
 import { api, parseApiError } from './services/api';
-import { PostCard } from './components/PostCard';
-import { PostListItem } from './components/PostListItem';
-import { PostDetail } from './components/PostDetail';
-import { SettingsModal } from './components/SettingsModal';
-import { ToastContainer } from './components/Toast';
-import { SearchHistory } from './components/SearchHistory';
-import { ViewModeToggle } from './components/ViewModeToggle';
-import { QuickActions } from './components/QuickActions';
-import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
+import { PostCard } from './components/post/PostCard';
+import { PostListItem } from './components/post/PostListItem';
+import { PostDetail } from './components/post/PostDetail';
+import { SettingsModal } from './components/settings/SettingsModal';
+import { ToastContainer } from './components/ui/Toast';
+import { SearchHistory } from './components/ui/SearchHistory';
+import { ViewModeToggle } from './components/ui/ViewModeToggle';
+import { QuickActions } from './components/ui/QuickActions';
+import { KeyboardShortcutsHelp } from './components/ui/KeyboardShortcutsHelp';
 import { useSettings } from './hooks/useSettings';
 import { 
   useDebounce, 
@@ -24,7 +24,7 @@ import {
 } from './hooks';
 import { isPostBlacklisted, distributeToColumns, cn } from './utils';
 import { TAG_STYLES } from './config';
-import { Ripple } from './components/Ripple';
+import { Ripple } from './components/ui/Ripple';
 
 type Tab = 'home' | 'favorites';
 

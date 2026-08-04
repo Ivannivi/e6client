@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SearchHistory } from './SearchHistory';
-import type { SearchHistoryItem } from '../hooks/useSearchHistory';
+import type { SearchHistoryItem } from '../../hooks/useSearchHistory';
 
 function makeItem(overrides: Partial<SearchHistoryItem> = {}): SearchHistoryItem {
   return { query: 'fox', timestamp: Date.now(), ...overrides };

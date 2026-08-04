@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ReactNode } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SettingsModal } from './SettingsModal';
-import { makeSettings, makeAccount } from '../test/factories';
+import { makeSettings, makeAccount } from '../../test/factories';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -23,11 +23,11 @@ const apiMock = vi.hoisted(() => ({
   getUserByName: vi.fn(),
 }));
 
-vi.mock('../services/api', () => ({
+vi.mock('../../services/api', () => ({
   api: apiMock,
 }));
 
-vi.mock('./Ripple', () => ({
+vi.mock('../ui/Ripple', () => ({
   Ripple: ({ children, onClick, disabled }: { children: ReactNode; onClick?: () => void; disabled?: boolean }) => (
     <div onClick={disabled ? undefined : onClick} data-disabled={disabled ?? false}>{children}</div>
   ),

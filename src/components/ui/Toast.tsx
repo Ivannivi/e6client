@@ -1,5 +1,5 @@
-import { cn } from '../utils';
-import type { Toast as ToastType } from '../hooks/useToast';
+import { cn } from '../../utils';
+import type { Toast as ToastType } from '../../hooks/useToast';
 
 interface Props {
   toasts: ToastType[];

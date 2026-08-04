@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, KeyboardEvent, Key } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Settings, Account } from '../types';
-import { getActiveAccount, createAccount } from '../types';
-import { api } from '../services/api';
-import { cn } from '../utils';
-import { Ripple } from './Ripple';
+import type { Settings, Account } from '../../types';
+import { getActiveAccount, createAccount } from '../../types';
+import { api } from '../../services/api';
+import { cn } from '../../utils';
+import { Ripple } from '../ui/Ripple';
 
 interface Props {
   isOpen: boolean;

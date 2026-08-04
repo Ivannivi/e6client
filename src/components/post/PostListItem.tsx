@@ -1,9 +1,9 @@
 import type { Key } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Post, Settings } from '../types';
-import { TAG_STYLES } from '../config';
-import { isVideoFile, formatFileSize, cn } from '../utils';
-import { Ripple } from './Ripple';
+import type { Post, Settings } from '../../types';
+import { TAG_STYLES } from '../../config';
+import { isVideoFile, formatFileSize, cn } from '../../utils';
+import { Ripple } from '../ui/Ripple';
 
 interface Props {
   key?: Key;

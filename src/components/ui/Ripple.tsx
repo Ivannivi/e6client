@@ -1,5 +1,5 @@
 import { useState, useRef, type PointerEvent, type ReactNode } from 'react';
-import { cn } from '../utils';
+import { cn } from '../../utils';
 
 interface RippleInstance {
   key: number;

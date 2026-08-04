@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useRef, Key } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Post, Settings, Comment } from '../types';
-import { api } from '../services/api';
-import { RATING, TAG_STYLES } from '../config';
-import { formatFileSize, cn, downloadFile, shareContent, generatePostFilename, copyToClipboard } from '../utils';
+import type { Post, Settings, Comment } from '../../types';
+import { api } from '../../services/api';
+import { RATING, TAG_STYLES } from '../../config';
+import { formatFileSize, cn, downloadFile, shareContent, generatePostFilename, copyToClipboard } from '../../utils';
 
 interface Props {
   post: Post;

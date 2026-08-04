@@ -33,7 +33,7 @@ vi.mock('./services/api', () => ({
   parseApiError: (err: unknown) => err instanceof Error ? err.message : 'error',
 }));
 
-vi.mock('./components/Ripple', () => ({
+vi.mock('./components/ui/Ripple', () => ({
   Ripple: ({ children, onClick, disabled }: { children: ReactNode; onClick?: () => void; disabled?: boolean }) => (
     <div onClick={disabled ? undefined : onClick} data-disabled={disabled ?? false}>{children}</div>
   ),

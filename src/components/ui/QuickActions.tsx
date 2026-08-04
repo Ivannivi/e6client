@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { cn } from '../utils';
+import { cn } from '../../utils';
 import { Ripple } from './Ripple';
 
 interface Props {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PostCard } from './PostCard';
-import { makePost, makeSettings } from '../test/factories';
+import { makePost, makeSettings } from '../../test/factories';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -10,7 +10,7 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('./Ripple', () => ({
+vi.mock('../ui/Ripple', () => ({
   Ripple: ({ children, onClick, disabled }: any) => (
     <div onClick={disabled ? undefined : onClick} data-disabled={disabled ?? false}>
       {children}
