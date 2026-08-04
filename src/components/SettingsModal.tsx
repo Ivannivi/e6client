@@ -170,37 +170,37 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-surface-container rounded-xl shadow-elevation-3 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <header className="p-6 border-b border-outline-variant/40 flex justify-between items-center bg-surface-container z-10">
-          <h2 className="text-2xl font-bold text-on-surface">{t('settings.title')}</h2>
-          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface">
-            <i className="fas fa-times text-xl" />
+    <div className="fixed inset-0 z-50 bg-surface flex flex-col">
+      {/* Header */}
+      <header className="sticky top-0 z-10 px-4 sm:px-6 pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 border-b border-outline-variant/40 flex justify-between items-center bg-surface-container">
+        <h2 className="text-2xl font-bold text-on-surface">{t('settings.title')}</h2>
+        <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface">
+          <i className="fas fa-times text-xl" />
+        </button>
+      </header>
+
+      {/* Tabs */}
+      <nav className="flex border-b border-outline-variant/40 bg-surface-container-low overflow-x-auto">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              'flex-none min-w-[120px] py-3 px-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors border-b-2',
+              activeTab === tab.id
+                ? 'border-primary text-primary bg-surface-container'
+                : 'border-transparent text-on-surface-variant hover:text-on-surface'
+            )}
+          >
+            <i className={`fas ${tab.icon}`} />
+            <span>{t(tab.labelKey)}</span>
           </button>
-        </header>
+        ))}
+      </nav>
 
-        {/* Tabs */}
-        <nav className="flex border-b border-outline-variant/40 bg-surface-container-low">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                'flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors border-b-2',
-                activeTab === tab.id
-                  ? 'border-primary text-primary bg-surface-container'
-                  : 'border-transparent text-on-surface-variant hover:text-on-surface'
-              )}
-            >
-              <i className={`fas ${tab.icon}`} />
-              <span className="hidden sm:inline">{t(tab.labelKey)}</span>
-            </button>
-          ))}
-        </nav>
-
-        {/* Content */}
-        <div className="p-6 space-y-6 flex-1 overflow-y-auto bg-surface-container min-h-[350px]">
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto bg-surface">
+        <div className="max-w-3xl mx-auto w-full p-4 sm:p-6 space-y-6">
           {activeTab === 'account' && (
             <AccountTab
               settings={local}
@@ -230,23 +230,23 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
             />
           )}
         </div>
-
-        {/* Footer */}
-        <footer className="p-6 border-t border-outline-variant/40 flex justify-end bg-surface-container-low rounded-b-xl sticky bottom-0 z-10">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 mr-2 text-on-surface-variant hover:text-on-surface"
-          >
-            {t('settings.cancel')}
-          </button>
-          <Ripple
-            className="rounded-full bg-primary text-on-primary shadow-elevation-1"
-            onClick={handleSave}
-          >
-            <span className="block px-6 py-2 font-medium">{t('settings.saveChanges')}</span>
-          </Ripple>
-        </footer>
       </div>
+
+      {/* Footer */}
+      <footer className="sticky bottom-0 z-10 px-4 sm:px-6 py-4 border-t border-outline-variant/40 flex justify-end bg-surface-container-low pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+        <button
+          onClick={onClose}
+          className="px-4 py-2 mr-2 text-on-surface-variant hover:text-on-surface"
+        >
+          {t('settings.cancel')}
+        </button>
+        <Ripple
+          className="rounded-full bg-primary text-on-primary shadow-elevation-1"
+          onClick={handleSave}
+        >
+          <span className="block px-6 py-2 font-medium">{t('settings.saveChanges')}</span>
+        </Ripple>
+      </footer>
     </div>
   );
 }
@@ -448,12 +448,14 @@ function AccountTab({
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold text-on-surface">{t('settings.account.title')}</h3>
-        <Ripple className="rounded-full bg-primary text-on-primary" onClick={handleAddAccount}>
-          <span className="block px-3 py-1.5 text-sm">
-            <i className="fas fa-plus mr-2" />
-            {t('settings.account.addAccount')}
-          </span>
-        </Ripple>
+        {settings.accounts.length > 0 && (
+          <Ripple className="rounded-full bg-primary text-on-primary" onClick={handleAddAccount}>
+            <span className="block px-3 py-1.5 text-sm">
+              <i className="fas fa-plus mr-2" />
+              {t('settings.account.addAccount')}
+            </span>
+          </Ripple>
+        )}
       </div>
 
       {settings.accounts.length === 0 ? (
@@ -571,25 +573,14 @@ function BlacklistTab({
   
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* NSFW Toggle */}
-      <div className="flex items-center justify-between p-3 bg-error-container/40 rounded-lg border border-error/30">
-        <div>
-          <span className="text-on-surface block font-medium">{t('settings.blacklist.nsfwMode')}</span>
-          <span className="text-xs text-on-surface-variant">{t('settings.blacklist.nsfwHint')}</span>
-        </div>
-        <Toggle enabled={settings.nsfwEnabled} onToggle={() => onToggle('nsfwEnabled')} color="bg-error" />
-      </div>
-
       {/* Safe Mode (blur) */}
-      {settings.nsfwEnabled && (
-        <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg">
-          <div>
-            <span className="text-on-surface block font-medium">{t('settings.blacklist.safeMode')}</span>
-            <span className="text-xs text-on-surface-variant">{t('settings.blacklist.safeHint')}</span>
-          </div>
-          <Toggle enabled={settings.safeMode} onToggle={() => onToggle('safeMode')} color="bg-green-500" />
+      <div className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg">
+        <div>
+          <span className="text-on-surface block font-medium">{t('settings.blacklist.safeMode')}</span>
+          <span className="text-xs text-on-surface-variant">{t('settings.blacklist.safeHint')}</span>
         </div>
-      )}
+        <Toggle enabled={settings.safeMode} onToggle={() => onToggle('safeMode')} color="bg-green-500" />
+      </div>
 
       {/* Tag list */}
       <div>

@@ -1,4 +1,4 @@
-import { Post, Settings, Tags } from '../types';
+import { Post, Settings, Tags, isSafeProvider } from '../types';
 
 export function formatFileSize(bytes: number): string {
   const mb = bytes / (1024 * 1024);
@@ -60,7 +60,7 @@ export function buildSearchQuery(
   options: {
     tab: 'home' | 'favorites';
     username?: string;
-    nsfwEnabled: boolean;
+    hostUrl: string;
   }
 ): string {
   const parts: string[] = [];
@@ -69,7 +69,7 @@ export function buildSearchQuery(
     parts.push(`fav:${options.username}`);
   }
 
-  if (!options.nsfwEnabled) {
+  if (isSafeProvider(options.hostUrl)) {
     parts.push('rating:s');
   }
 

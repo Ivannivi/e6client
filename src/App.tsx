@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo, FormEvent, Key } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Post, Settings, TagSuggestion } from './types';
-import { getActiveAccount } from './types';
+import { getActiveAccount, isSafeProvider } from './types';
 import { api, parseApiError } from './services/api';
 import { PostCard } from './components/PostCard';
 import { PostListItem } from './components/PostListItem';
@@ -90,7 +90,8 @@ export default function App() {
           finalQuery = `fav:${activeAccount.username} ${overrideQuery}`;
         }
 
-        if (!settings.nsfwEnabled) {
+        const activeAccount = getActiveAccount(settings);
+        if (activeAccount && isSafeProvider(activeAccount.hostUrl)) {
           finalQuery = `rating:s ${finalQuery}`.trim();
         }
 
@@ -200,7 +201,8 @@ export default function App() {
     setLoading(true);
     try {
       let randomQuery = 'order:random';
-      if (!settings.nsfwEnabled) {
+      const activeAccount = getActiveAccount(settings);
+      if (activeAccount && isSafeProvider(activeAccount.hostUrl)) {
         randomQuery = 'rating:s ' + randomQuery;
       }
       const randomPosts = await api.getPosts(settings, randomQuery, 1, 1);

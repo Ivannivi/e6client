@@ -55,6 +55,7 @@ jobs:
 
   build-android:
     needs: [typecheck, test]
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -133,6 +134,7 @@ jobs:
 
   build-linux:
     needs: [typecheck, test]
+    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       matrix:
@@ -177,6 +179,7 @@ jobs:
 
   build-windows:
     needs: [typecheck, test]
+    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       matrix:
@@ -218,6 +221,7 @@ jobs:
 
   build-macos:
     needs: [typecheck, test]
+    if: github.event_name != 'pull_request'
     runs-on: macos-latest
     steps:
       - name: Checkout code
