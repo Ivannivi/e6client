@@ -1,4 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
   <rect width="256" height="256" rx="56" fill="#6750A4"/>
-  <text x="128" y="128" font-family="system-ui, -apple-system, sans-serif" font-size="120" font-weight="700" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central">e6</text>
+  <g fill="#FFFFFF">
+    <ellipse cx="128" cy="165" rx="42" ry="34"/>
+    <ellipse cx="78" cy="120" rx="22" ry="28"/>
+    <ellipse cx="178" cy="120" rx="22" ry="28"/>
+    <ellipse cx="100" cy="80" rx="18" ry="23"/>
+    <ellipse cx="156" cy="80" rx="18" ry="23"/>
+  </g>
 </svg>
