@@ -99,19 +99,11 @@ describe('PostListItem', () => {
     expect(screen.queryByAltText('Post 1')).not.toBeInTheDocument();
   });
 
-  it('shows artist names when present', () => {
+  it('does not show artist names in the list item', () => {
     const post = makePost({ artist: ['alice', 'bob'] });
     post.preview.url = 'https://example.com/preview.png';
     render(<PostListItem post={post} settings={makeSettings()} onClick={() => {}} />);
 
-    expect(screen.getByText('postList.byArtist')).toBeInTheDocument();
-  });
-
-  it('shows the unknownArtist fallback when there are no artist tags', () => {
-    const post = makePost({ artist: [] });
-    post.preview.url = 'https://example.com/preview.png';
-    render(<PostListItem post={post} settings={makeSettings()} onClick={() => {}} />);
-
-    expect(screen.getByText('postList.byArtist')).toBeInTheDocument();
+    expect(screen.queryByText('postList.byArtist')).not.toBeInTheDocument();
   });
 });
