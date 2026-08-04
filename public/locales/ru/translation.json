@@ -1,0 +1,95 @@
+{
+  "app": {
+    "title": "e6client",
+    "searchPlaceholder": "Поиск по тегам... (например, rating:s fox)",
+    "favoritesPlaceholder": "Фильтр избранного...",
+    "loadingMore": "Загрузка...",
+    "endReached": "Вы достигли конца!",
+    "noPosts": "Постов не найдено.",
+    "clearSearch": "Очистить поиск",
+    "client": "Клиент"
+  },
+  "tabs": {
+    "browse": "Обзор",
+    "favorites": "Избранное"
+  },
+  "actions": {
+    "settings": "Настройки",
+    "keyboardShortcuts": "Горячие клавиши",
+    "randomPost": "Случайный пост",
+    "refresh": "Обновить",
+    "search": "Поиск"
+  },
+  "error": {
+    "prefix": "Ошибка:",
+    "retry": "Повторить",
+    "openSettings": "Настройки"
+  },
+  "toasts": {
+    "randomPostSuccess": "Загружен случайный пост!",
+    "randomPostError": "Не удалось загрузить случайный пост"
+  },
+  "settings": {
+    "title": "Настройки",
+    "saveChanges": "Сохранить изменения",
+    "cancel": "Отмена",
+    "tabs": {
+      "account": "Аккаунт",
+      "blacklist": "Чёрный список",
+      "network": "Сеть",
+      "appearance": "Внешний вид"
+    },
+    "appearance": {
+      "title": "Внешний вид",
+      "theme": {
+        "label": "Тема",
+        "system": "Системная",
+        "light": "Светлая",
+        "dark": "Тёмная"
+      },
+      "accentColor": {
+        "label": "Акцентный цвет"
+      },
+      "language": {
+        "label": "Язык",
+        "en": "English",
+        "ru": "Русский"
+      }
+    },
+    "account": {
+      "title": "Аккаунты",
+      "addAccount": "Добавить аккаунт",
+      "addFirstAccount": "Добавьте первый аккаунт",
+      "noAccounts": "Аккаунты не настроены",
+      "active": "Активный",
+      "accountName": "Название аккаунта",
+      "hostUrl": "URL хоста",
+      "username": "Имя пользователя",
+      "apiKey": "API-ключ",
+      "apiKeyHint": "API-ключ находится в настройках аккаунта e621 > API.",
+      "edit": "Редактировать аккаунт",
+      "new": "Новый аккаунт",
+      "save": "Сохранить аккаунт",
+      "delete": "Удалить",
+      "usingAccount": "Используется <1>{{name}}</1> ({{host}})"
+    },
+    "blacklist": {
+      "nsfwMode": "NSFW-режим",
+      "nsfwHint": "Включить контент для взрослых (Questionable/Explicit)",
+      "safeMode": "Безопасный режим",
+      "safeHint": "Размывать Explicit/Questionable посты в результатах",
+      "blacklistedTags": "Теги в чёрном списке",
+      "sync": "Обновить",
+      "syncing": "Синхронизация...",
+      "tagPlaceholder": "Введите тег и нажмите Enter, чтобы добавить...",
+      "empty": "Нет тегов в чёрном списке."
+    },
+    "network": {
+      "enableProxy": "Пользовательский прокси/хост",
+      "proxyHint": "Направлять запросы через пользовательский URL для обхода CORS",
+      "proxyLabel": "Прокси / базовый URL",
+      "useDemoProxy": "Использовать публичный демо-прокси",
+      "proxyWarning": "e621.net блокирует прямые запросы из браузера. Используйте CORS-прокси."
+    }
+  }
+}

@@ -5,6 +5,11 @@ export { useSearchHistory } from './useSearchHistory';
 export { useKeyboardShortcuts, SHORTCUT_DESCRIPTIONS } from './useKeyboardShortcuts';
 export { useToast } from './useToast';
 export { useViewMode } from './useViewMode';
+export { useOfflineCache } from './useOfflineCache';
+export { usePullToRefresh } from './usePullToRefresh';
+export { useAppLock } from './useAppLock';
+export { useSecureAppSwitcher } from './useSecureAppSwitcher';
+export { useDeepLinks } from './useDeepLinks';
 export type { ViewMode } from './useViewMode';
 export type { Toast } from './useToast';
 

@@ -38,6 +38,10 @@ export function isAnimatedFile(extension: string): boolean {
   return ['webm', 'mp4', 'gif'].includes(extension.toLowerCase());
 }
 
+export function isSvgFile(extension: string): boolean {
+  return extension.toLowerCase() === 'svg';
+}
+
 export function getAspectRatio(width: number, height: number): string {
   return width && height ? `${width} / ${height}` : 'auto';
 }
@@ -106,66 +110,142 @@ export function cn(...classes: (string | boolean | undefined)[]): string {
   return classes.filter(Boolean).join(' ');
 }
 
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string | null;
+      if (!result) {
+        reject(new Error('Failed to read blob as data URL'));
+        return;
+      }
+      const base64 = result.split(',')[1];
+      resolve(base64 ?? '');
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function tryNativeDownload(blob: Blob, filename: string): Promise<boolean> {
+  if (!window.Capacitor) return false;
+
+  const { Filesystem } = window.Capacitor.Plugins;
+  if (!Filesystem) return false;
+
+  try {
+    const base64 = await blobToBase64(blob);
+    const platform = window.Capacitor.getPlatform?.() ?? 'web';
+    const folder = `e6client/${platform === 'ios' ? 'Downloads' : ''}`;
+    const path = folder ? `${folder}/${filename}` : filename;
+
+    // Prefer shared storage on Android; fall back to Documents if unavailable.
+    const directories = platform === 'android'
+      ? ['EXTERNAL_STORAGE', 'DOCUMENTS']
+      : ['DOCUMENTS'];
+
+    for (const directory of directories) {
+      try {
+        await Filesystem.writeFile({
+          path,
+          data: base64,
+          directory: directory as never,
+          recursive: true,
+        });
+        return true;
+      } catch {
+        // Try the next directory.
+      }
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function webDownload(blob: Blob, filename: string): void {
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(blobUrl);
+}
+
 /**
- * Download a file from a URL
+ * Download a file from a URL.
+ * On native platforms the file is saved to device storage via Capacitor
+ * Filesystem when available; on web it falls back to a blob download.
  */
 export async function downloadFile(
   url: string,
   filename: string,
   onProgress?: (progress: number) => void
 ): Promise<void> {
+  let response: Response;
   try {
-    const response = await fetch(url);
+    response = await fetch(url);
     if (!response.ok) throw new Error('Download failed');
-
-    const contentLength = response.headers.get('content-length');
-    const total = contentLength ? parseInt(contentLength, 10) : 0;
-
-    const reader = response.body?.getReader();
-    if (!reader) throw new Error('Unable to read response');
-
-    const chunks: Uint8Array[] = [];
-    let received = 0;
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      chunks.push(value);
-      received += value.length;
-
-      if (total && onProgress) {
-        onProgress(Math.round((received / total) * 100));
-      }
-    }
-
-    const blob = new Blob(chunks);
-    const blobUrl = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(blobUrl);
-  } catch (error) {
-    // Fallback: open in new tab
+  } catch {
     window.open(url, '_blank');
-    throw error;
+    throw new Error('Download failed');
+  }
+
+  const contentLength = response.headers.get('content-length');
+  const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('Unable to read response');
+
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    chunks.push(value);
+    received += value.length;
+
+    if (total && onProgress) {
+      onProgress(Math.round((received / total) * 100));
+    }
+  }
+
+  const blob = new Blob(chunks);
+
+  const savedNatively = await tryNativeDownload(blob, filename);
+  if (!savedNatively) {
+    webDownload(blob, filename);
   }
 }
 
 /**
- * Share content using Web Share API or fallback to clipboard
+ * Share content using the best available native/web API.
+ * Tries Capacitor Share, then Web Share API, then clipboard.
  */
 export async function shareContent(data: {
   title?: string;
   text?: string;
   url?: string;
 }): Promise<boolean> {
-  // Try Web Share API first
+  // Try Capacitor Share on native platforms first.
+  if (window.Capacitor?.Plugins?.Share) {
+    try {
+      await window.Capacitor.Plugins.Share.share(data);
+      return true;
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        return false; // User cancelled
+      }
+      // Fall through to web APIs on error.
+    }
+  }
+
+  // Try Web Share API next.
   if (navigator.share) {
     try {
       await navigator.share(data);
@@ -177,7 +257,7 @@ export async function shareContent(data: {
     }
   }
 
-  // Fallback to clipboard
+  // Fallback to clipboard.
   const shareText = data.url || data.text || '';
   if (shareText && navigator.clipboard) {
     await navigator.clipboard.writeText(shareText);
@@ -185,6 +265,23 @@ export async function shareContent(data: {
   }
 
   return false;
+}
+
+/**
+ * Open a URL in the platform's in-app browser when running natively,
+ * otherwise open in a new browser tab.
+ */
+export async function openInAppBrowser(url: string): Promise<void> {
+  if (window.Capacitor?.Plugins?.Browser) {
+    try {
+      await window.Capacitor.Plugins.Browser.open({ url });
+      return;
+    } catch {
+      // Fall back to a regular tab open.
+    }
+  }
+
+  window.open(url, '_blank');
 }
 
 /**

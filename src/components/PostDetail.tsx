@@ -1,8 +1,19 @@
-import { useEffect, useState, useCallback, Key } from 'react';
+import { useEffect, useState, useCallback, useRef, Key } from 'react';
 import type { Post, Settings, Comment } from '../types';
 import { api } from '../services/api';
 import { RATING, TAG_STYLES } from '../config';
-import { formatFileSize, cn, downloadFile, shareContent, generatePostFilename, copyToClipboard } from '../utils';
+import {
+  formatFileSize,
+  cn,
+  downloadFile,
+  shareContent,
+  generatePostFilename,
+  copyToClipboard,
+  isSvgFile,
+  openInAppBrowser,
+} from '../utils';
+import { usePinchZoom } from '../hooks/usePinchZoom';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 interface Props {
   post: Post;
@@ -15,6 +26,16 @@ type TagCategory = keyof typeof TAG_STYLES.category;
 
 export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
   const isVideo = ['webm', 'mp4'].includes(post.file.ext);
+  const isSvg = isSvgFile(post.file.ext);
+
+  useWakeLock();
+
+  const {
+    ref: zoomRef,
+    style: zoomStyle,
+    reset: resetZoom,
+    ...zoomEvents
+  } = usePinchZoom();
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
@@ -22,7 +43,12 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [showCopied, setShowCopied] = useState(false);
+  const [showShared, setShowShared] = useState(false);
+
+  // Reset any pinch zoom when the viewed post changes.
+  useEffect(() => {
+    resetZoom();
+  }, [post.id, resetZoom]);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,10 +97,10 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
 
   const handleDownload = useCallback(async () => {
     if (!post.file.url || downloading) return;
-    
+
     setDownloading(true);
     setDownloadProgress(0);
-    
+
     try {
       const filename = generatePostFilename(post);
       await downloadFile(post.file.url, filename, setDownloadProgress);
@@ -93,10 +119,10 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
       text: `Check out this post by ${post.tags.artist.join(', ') || 'unknown artist'}`,
       url,
     });
-    
+
     if (shared) {
-      setShowCopied(true);
-      setTimeout(() => setShowCopied(false), 2000);
+      setShowShared(true);
+      setTimeout(() => setShowShared(false), 2000);
     }
   }, [post]);
 
@@ -104,9 +130,13 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
     const url = `https://e621.net/posts/${post.id}`;
     const success = await copyToClipboard(url);
     if (success) {
-      setShowCopied(true);
-      setTimeout(() => setShowCopied(false), 2000);
+      setShowShared(true);
+      setTimeout(() => setShowShared(false), 2000);
     }
+  }, [post.id]);
+
+  const handleOpen = useCallback(() => {
+    void openInAppBrowser(`https://e621.net/posts/${post.id}`);
   }, [post.id]);
 
   const renderTags = (tags: string[], category: TagCategory) => {
@@ -161,6 +191,8 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
     e: 'bg-red-600 text-white',
   }[post.rating] ?? 'bg-surface-container-highest text-on-surface';
 
+  const mediaUrl = post.file.url || post.sample.url || post.preview.url || '';
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md animate-fade-in pt-safe"
@@ -181,19 +213,26 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
         {/* Media viewer */}
         <div className="flex-1 bg-black flex items-center justify-center relative overflow-hidden group">
           {isVideo ? (
-            <video
-              src={post.file.url ?? ''}
-              controls
-              autoPlay
-              loop
-              className="max-w-full max-h-full object-contain"
-            />
+            <VideoPlayer url={post.file.url ?? ''} />
           ) : (
-            <img
-              src={post.file.url || post.sample.url || post.preview.url || ''}
-              alt={`Post ${post.id}`}
-              className="max-w-full max-h-full object-contain"
-            />
+            <div
+              ref={zoomRef}
+              {...zoomEvents}
+              style={zoomStyle}
+              className="flex items-center justify-center max-w-full max-h-full touch-none"
+            >
+              <img
+                src={mediaUrl}
+                alt={`Post ${post.id}`}
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+          )}
+
+          {isSvg && (
+            <span className="absolute top-4 left-4 bg-primary/90 text-on-primary px-3 py-1 rounded-full text-xs font-bold z-10">
+              SVG
+            </span>
           )}
 
           <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity">
@@ -261,7 +300,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                   className="flex flex-col items-center text-on-surface-variant hover:text-tertiary transition-colors relative"
                 >
                   <i className="fas fa-share-alt text-xl mb-1" />
-                  <span className="text-xs">{showCopied ? 'Copied!' : 'Share'}</span>
+                  <span className="text-xs">{showShared ? 'Shared!' : 'Share'}</span>
                 </button>
                 <button
                   onClick={handleCopyLink}
@@ -270,15 +309,13 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                   <i className="fas fa-link text-xl mb-1" />
                   <span className="text-xs">Copy</span>
                 </button>
-                <a
-                  href={`https://e621.net/posts/${post.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={handleOpen}
                   className="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors"
                 >
                   <i className="fas fa-external-link-alt text-xl mb-1" />
                   <span className="text-xs">Open</span>
-                </a>
+                </button>
               </div>
 
               {/* Tags */}
@@ -331,6 +368,62 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
           </div>
         </aside>
       </div>
+    </div>
+  );
+}
+
+function VideoPlayer({ url }: { url: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleFullscreenChange = async () => {
+      const isFullscreen = !!document.fullscreenElement;
+      const orientation = window.Capacitor?.Plugins?.ScreenOrientation;
+      if (!orientation) return;
+
+      try {
+        if (isFullscreen) {
+          await orientation.lock({ orientation: 'landscape' });
+        } else {
+          await orientation.unlock();
+        }
+      } catch {
+        // Ignore orientation lock errors.
+      }
+    };
+
+    video.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => video.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const enterFullscreen = async () => {
+    try {
+      await videoRef.current?.requestFullscreen();
+    } catch {
+      // Fullscreen may be blocked; ignore.
+    }
+  };
+
+  return (
+    <div className="relative w-full h-full flex items-center justify-center">
+      <video
+        ref={videoRef}
+        src={url}
+        controls
+        autoPlay
+        loop
+        className="max-w-full max-h-full object-contain"
+      />
+      <button
+        onClick={enterFullscreen}
+        className="absolute bottom-4 left-4 bg-black/60 hover:bg-black/80 text-white px-3 py-1.5 rounded text-sm transition-colors z-10"
+        aria-label="Fullscreen"
+      >
+        <i className="fas fa-expand mr-1" /> Fullscreen
+      </button>
     </div>
   );
 }

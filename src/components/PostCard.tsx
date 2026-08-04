@@ -1,7 +1,7 @@
 import type { Key } from 'react';
 import type { Post, Settings } from '../types';
 import { TAG_STYLES } from '../config';
-import { isVideoFile, cn } from '../utils';
+import { isVideoFile, isSvgFile, cn } from '../utils';
 import { Ripple } from './Ripple';
 
 interface Props {
@@ -15,6 +15,7 @@ export function PostCard({ post, settings, onClick }: Props) {
   const isSafe = post.rating === 's';
   const shouldBlur = settings.safeMode && !isSafe;
   const isVideo = isVideoFile(post.file.ext);
+  const isSvg = isSvgFile(post.file.ext);
   const ratingDot = TAG_STYLES.ratingDot[post.rating] ?? TAG_STYLES.ratingDot.default;
 
   const width = post.preview.width || post.file.width;
@@ -54,6 +55,12 @@ export function PostCard({ post, settings, onClick }: Props) {
           {isVideo && (
             <span className="absolute top-2 right-2 bg-surface-container-highest/90 text-on-surface px-2 py-0.5 rounded-full text-xs font-bold z-10">
               {post.file.ext.toUpperCase()}
+            </span>
+          )}
+
+          {isSvg && (
+            <span className="absolute top-2 left-2 bg-primary/90 text-on-primary px-2 py-0.5 rounded-full text-xs font-bold z-10">
+              SVG
             </span>
           )}
 

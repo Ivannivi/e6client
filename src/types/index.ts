@@ -123,7 +123,23 @@ export interface Settings {
   nsfwEnabled: boolean;
   safeMode: boolean;
   blacklistedTags: string[];
+  // Appearance / i18n
+  theme: 'system' | 'light' | 'dark';
+  accentColor: string;
+  language: string;
+  // Offline / cache
+  offlineEnabled: boolean;
+  // Privacy / app lock
+  appLockEnabled: boolean;
+  appLockPin: string;
+  useBiometric: boolean;
+  secureAppSwitcher: boolean;
+  // Notifications
+  notificationsEnabled: boolean;
+  pushNotificationsEnabled: boolean;
 }
+
+export const DEFAULT_ACCENT_COLOR = '#6750A4';
 
 export const createDefaultSettings = (): Settings => ({
   accounts: [],
@@ -133,6 +149,16 @@ export const createDefaultSettings = (): Settings => ({
   nsfwEnabled: false,
   safeMode: false,
   blacklistedTags: [],
+  theme: 'system',
+  accentColor: DEFAULT_ACCENT_COLOR,
+  language: 'en',
+  offlineEnabled: false,
+  appLockEnabled: false,
+  appLockPin: '',
+  useBiometric: false,
+  secureAppSwitcher: false,
+  notificationsEnabled: false,
+  pushNotificationsEnabled: false,
 });
 
 export const getActiveAccount = (settings: Settings): Account | null => {

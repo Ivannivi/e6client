@@ -259,4 +259,42 @@ export const api = {
       return [];
     }
   },
+
+  async createPost(
+    settings: Settings,
+    payload: {
+      file: File;
+      tags: string;
+      rating: 's' | 'q' | 'e';
+      source?: string;
+    }
+  ): Promise<number> {
+    const activeAccount = getActiveAccount(settings);
+    if (!activeAccount?.username || !activeAccount?.apiKey) {
+      throw new Error('Upload requires an account with username and API key.');
+    }
+
+    const url = buildApiUrl('/uploads.json', {}, settings);
+
+    const formData = new FormData();
+    formData.append('upload[file]', payload.file);
+    formData.append('upload[tag_string]', payload.tags);
+    formData.append('upload[rating]', payload.rating);
+    if (payload.source) {
+      formData.append('upload[source]', payload.source);
+    }
+
+    return fetchWithRetry(async () => {
+      const res = await http.post(url, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const responseData = res.data as { post?: { id: number }; id?: number };
+      const postId = responseData.post?.id ?? responseData.id;
+      if (!postId) {
+        throw new Error('Upload succeeded but no post ID was returned.');
+      }
+      return postId;
+    });
+  },
 };

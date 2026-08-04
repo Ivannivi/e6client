@@ -1,0 +1,95 @@
+{
+  "app": {
+    "title": "e6client",
+    "searchPlaceholder": "Search tags... (e.g. rating:s fox)",
+    "favoritesPlaceholder": "Filter favorites...",
+    "loadingMore": "Loading more...",
+    "endReached": "You've reached the end!",
+    "noPosts": "No posts found.",
+    "clearSearch": "Clear Search",
+    "client": "Client"
+  },
+  "tabs": {
+    "browse": "Browse",
+    "favorites": "Favorites"
+  },
+  "actions": {
+    "settings": "Settings",
+    "keyboardShortcuts": "Keyboard shortcuts",
+    "randomPost": "Random post",
+    "refresh": "Refresh",
+    "search": "Search"
+  },
+  "error": {
+    "prefix": "Error:",
+    "retry": "Retry",
+    "openSettings": "Settings"
+  },
+  "toasts": {
+    "randomPostSuccess": "Loaded a random post!",
+    "randomPostError": "Failed to load random post"
+  },
+  "settings": {
+    "title": "Settings",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel",
+    "tabs": {
+      "account": "Account",
+      "blacklist": "Blacklist",
+      "network": "Network",
+      "appearance": "Appearance"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "theme": {
+        "label": "Theme",
+        "system": "System",
+        "light": "Light",
+        "dark": "Dark"
+      },
+      "accentColor": {
+        "label": "Accent color"
+      },
+      "language": {
+        "label": "Language",
+        "en": "English",
+        "ru": "Русский"
+      }
+    },
+    "account": {
+      "title": "Accounts",
+      "addAccount": "Add Account",
+      "addFirstAccount": "Add Your First Account",
+      "noAccounts": "No accounts configured",
+      "active": "Active",
+      "accountName": "Account Name",
+      "hostUrl": "Host URL",
+      "username": "Username",
+      "apiKey": "API Key",
+      "apiKeyHint": "API Key is found in your e621 Account Settings > API.",
+      "edit": "Edit Account",
+      "new": "New Account",
+      "save": "Save Account",
+      "delete": "Delete",
+      "usingAccount": "Using <1>{{name}}</1> ({{host}})"
+    },
+    "blacklist": {
+      "nsfwMode": "NSFW Mode",
+      "nsfwHint": "Enable adult content (Questionable/Explicit)",
+      "safeMode": "Safe Mode",
+      "safeHint": "Blur Explicit/Questionable posts in results",
+      "blacklistedTags": "Blacklisted Tags",
+      "sync": "Refresh",
+      "syncing": "Syncing...",
+      "tagPlaceholder": "Type tag and press Enter to add...",
+      "empty": "No blacklisted tags."
+    },
+    "network": {
+      "enableProxy": "Enable Custom Proxy/Host",
+      "proxyHint": "Route requests through a custom URL to bypass CORS",
+      "proxyLabel": "Proxy / Base URL",
+      "useDemoProxy": "Use Public Demo Proxy",
+      "proxyWarning": "e621.net blocks direct browser requests. Use a CORS proxy."
+    }
+  }
+}
