@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, KeyboardEvent } from 'react';
+import { useState, useCallback, useEffect, KeyboardEvent, Key } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Settings, Account } from '../types';
 import { getActiveAccount, createAccount } from '../types';
@@ -291,6 +291,7 @@ function AccountTab({
   const handleAddAccount = () => {
     const newAccount = createAccount();
     setEditingAccount(newAccount);
+    setShowKey(false);
   };
 
   const handleEditAccount = (account: Account) => {
@@ -300,21 +301,20 @@ function AccountTab({
 
   const handleSaveAccount = () => {
     if (!editingAccount) return;
-    
+
     const existingIndex = settings.accounts.findIndex((a) => a.id === editingAccount.id);
     let newAccounts: Account[];
-    
+
     if (existingIndex >= 0) {
       newAccounts = [...settings.accounts];
       newAccounts[existingIndex] = editingAccount;
     } else {
       newAccounts = [...settings.accounts, editingAccount];
     }
-    
+
     onChange({
       ...settings,
       accounts: newAccounts,
-      // If this is the first account, set it as active
       activeAccountId: settings.activeAccountId || editingAccount.id,
     });
     setEditingAccount(null);
@@ -325,7 +325,7 @@ function AccountTab({
     onChange({
       ...settings,
       accounts: newAccounts,
-      activeAccountId: settings.activeAccountId === accountId 
+      activeAccountId: settings.activeAccountId === accountId
         ? (newAccounts[0]?.id || null)
         : settings.activeAccountId,
     });
@@ -338,109 +338,8 @@ function AccountTab({
     });
   };
 
-  if (editingAccount) {
-    return (
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-on-surface">
-            {settings.accounts.find((a) => a.id === editingAccount.id) ? t('settings.account.editAccount') : t('settings.account.newAccount')}
-          </h3>
-          <button
-            onClick={() => setEditingAccount(null)}
-            className="text-on-surface-variant hover:text-on-surface"
-          >
-            <i className="fas fa-arrow-left mr-2" />
-            {t('settings.account.back')}
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-on-surface-variant mb-1">
-              {t('settings.account.accountName')}
-            </label>
-            <input
-              type="text"
-              value={editingAccount.name}
-              onChange={(e) => setEditingAccount({ ...editingAccount, name: e.target.value })}
-              className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
-              placeholder={t('settings.account.accountNamePlaceholder')}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-on-surface-variant mb-1">
-              {t('settings.account.hostUrl')}
-            </label>
-            <input
-              type="text"
-              value={editingAccount.hostUrl}
-              onChange={(e) => setEditingAccount({ ...editingAccount, hostUrl: e.target.value })}
-              className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
-              placeholder={t('settings.account.hostUrlPlaceholder')}
-            />
-            <p className="text-xs text-on-surface-variant mt-1">
-              {t('settings.account.hostUrlHint')}
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium text-on-surface-variant mb-1">
-                {t('settings.account.username')}
-              </label>
-              <input
-                type="text"
-                value={editingAccount.username}
-                onChange={(e) => setEditingAccount({ ...editingAccount, username: e.target.value })}
-                className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
-                placeholder={t('settings.account.usernamePlaceholder')}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-on-surface-variant mb-1">
-                {t('settings.account.apiKey')}
-              </label>
-              <div className="relative">
-                <input
-                  type={showKey ? 'text' : 'password'}
-                  value={editingAccount.apiKey}
-                  onChange={(e) => setEditingAccount({ ...editingAccount, apiKey: e.target.value })}
-                  className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none pr-10"
-                  placeholder="****************"
-                />
-                <button
-                  onClick={() => setShowKey((v) => !v)}
-                  className="absolute right-3 top-2.5 text-on-surface-variant hover:text-on-surface"
-                >
-                  <i className={`fas ${showKey ? 'fa-eye-slash' : 'fa-eye'}`} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-secondary-container/50 p-3 rounded-md border border-secondary/30">
-            <p className="text-xs text-on-secondary-container">
-              <i className="fas fa-info-circle mr-1" />
-              {t('settings.account.apiKeyHint')}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 pt-4">
-          <button
-            onClick={() => setEditingAccount(null)}
-            className="px-4 py-2 text-on-surface-variant hover:text-on-surface"
-          >
-            {t('settings.cancel')}
-          </button>
-          <Ripple className="rounded-full bg-primary text-on-primary" onClick={handleSaveAccount}>
-            <span className="block px-4 py-2">{t('settings.account.saveAccount')}</span>
-          </Ripple>
-        </div>
-      </div>
-    );
-  }
+  const isEditing = editingAccount !== null;
+  const isExisting = editingAccount ? settings.accounts.some((a) => a.id === editingAccount.id) : false;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -467,68 +366,291 @@ function AccountTab({
       ) : (
         <div className="space-y-3">
           {settings.accounts.map((account) => (
-            <div
+            <AccountWidget
               key={account.id}
-              className={cn(
-                'p-4 rounded-lg border transition-colors',
-                account.id === settings.activeAccountId
-                  ? 'bg-primary/10 border-primary'
-                  : 'bg-surface-container-low border-outline-variant/40'
-              )}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className={cn(
-                      'w-10 h-10 rounded-full flex items-center justify-center font-bold',
-                      account.id === settings.activeAccountId
-                        ? 'bg-primary text-on-primary'
-                        : 'bg-secondary-container text-on-secondary-container'
-                    )}>
-                      {account.name.charAt(0).toUpperCase()}
-                    </div>
-                    {account.id === settings.activeAccountId && (
-                      <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-surface" />
-                    )}
-                  </div>
-                  <div>
-                    <span className="font-medium text-on-surface">{account.name}</span>
-                    <div className="text-xs text-on-surface-variant">
-                      {account.username || t('settings.account.noUsername')} • {new URL(account.hostUrl).hostname}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {account.id !== settings.activeAccountId && (
-                    <button
-                      onClick={() => handleSetActive(account.id)}
-                      className="p-2 text-on-surface-variant hover:text-primary"
-                      title={t('settings.account.setActive')}
-                    >
-                      <i className="fas fa-check-circle" />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleEditAccount(account)}
-                    className="p-2 text-on-surface-variant hover:text-primary"
-                    title={t('settings.account.edit')}
-                  >
-                    <i className="fas fa-edit" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteAccount(account.id)}
-                    className="p-2 text-on-surface-variant hover:text-error"
-                    title={t('settings.account.delete')}
-                  >
-                    <i className="fas fa-trash" />
-                  </button>
-                </div>
-              </div>
-            </div>
+              account={account}
+              isActive={account.id === settings.activeAccountId}
+              onSetActive={() => handleSetActive(account.id)}
+              onEdit={() => handleEditAccount(account)}
+              onDelete={() => handleDeleteAccount(account.id)}
+            />
           ))}
         </div>
       )}
+
+      {isEditing && editingAccount && (
+        <AccountEditModal
+          account={editingAccount}
+          isExisting={isExisting}
+          showKey={showKey}
+          onToggleKey={() => setShowKey((v) => !v)}
+          onChange={setEditingAccount}
+          onSave={handleSaveAccount}
+          onCancel={() => setEditingAccount(null)}
+        />
+      )}
     </div>
+  );
+}
+
+function AccountEditModal({
+  account,
+  isExisting,
+  showKey,
+  onToggleKey,
+  onChange,
+  onSave,
+  onCancel,
+}: {
+  account: Account;
+  isExisting: boolean;
+  showKey: boolean;
+  onToggleKey: () => void;
+  onChange: (account: Account) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onCancel}
+    >
+      <div
+        className="bg-surface-container-high rounded-xl shadow-elevation-3 p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-bold text-on-surface flex items-center gap-2">
+            <i className="fas fa-user-edit text-primary" />
+            {isExisting ? t('settings.account.editAccount') : t('settings.account.newAccount')}
+          </h2>
+          <button
+            onClick={onCancel}
+            className="text-on-surface-variant hover:text-on-surface"
+          >
+            <i className="fas fa-times text-xl" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-on-surface-variant mb-1">
+              {t('settings.account.accountName')}
+            </label>
+            <input
+              type="text"
+              value={account.name}
+              onChange={(e) => onChange({ ...account, name: e.target.value })}
+              className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
+              placeholder={t('settings.account.accountNamePlaceholder')}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-on-surface-variant mb-1">
+              {t('settings.account.hostUrl')}
+            </label>
+            <input
+              type="text"
+              value={account.hostUrl}
+              onChange={(e) => onChange({ ...account, hostUrl: e.target.value })}
+              className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
+              placeholder={t('settings.account.hostUrlPlaceholder')}
+            />
+            <p className="text-xs text-on-surface-variant mt-1">
+              {t('settings.account.hostUrlHint')}
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                {t('settings.account.username')}
+              </label>
+              <input
+                type="text"
+                value={account.username}
+                onChange={(e) => onChange({ ...account, username: e.target.value })}
+                className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none"
+                placeholder={t('settings.account.usernamePlaceholder')}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-on-surface-variant mb-1">
+                {t('settings.account.apiKey')}
+              </label>
+              <div className="relative">
+                <input
+                  type={showKey ? 'text' : 'password'}
+                  value={account.apiKey}
+                  onChange={(e) => onChange({ ...account, apiKey: e.target.value })}
+                  className="w-full px-3 py-2 border border-outline rounded-md bg-surface text-on-surface focus:ring-2 focus:ring-primary outline-none pr-10"
+                  placeholder="****************"
+                />
+                <button
+                  onClick={onToggleKey}
+                  className="absolute right-3 top-2.5 text-on-surface-variant hover:text-on-surface"
+                >
+                  <i className={`fas ${showKey ? 'fa-eye-slash' : 'fa-eye'}`} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-secondary-container/50 p-3 rounded-md border border-secondary/30">
+            <p className="text-xs text-on-secondary-container">
+              <i className="fas fa-info-circle mr-1" />
+              {t('settings.account.apiKeyHint')}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-6">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-on-surface-variant hover:text-on-surface"
+          >
+            {t('settings.cancel')}
+          </button>
+          <Ripple className="rounded-full bg-primary text-on-primary" onClick={onSave}>
+            <span className="block px-4 py-2">{t('settings.account.saveAccount')}</span>
+          </Ripple>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AccountWidget({
+  account,
+  isActive,
+  onSetActive,
+  onEdit,
+  onDelete,
+}: {
+  key?: Key;
+  account: Account;
+  isActive: boolean;
+  onSetActive: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+
+  let hostname = account.hostUrl;
+  try { hostname = new URL(account.hostUrl).hostname; } catch { /* keep raw */ }
+
+  return (
+    <>
+      <div
+        className={cn(
+          'p-4 rounded-lg border transition-colors cursor-pointer',
+          isActive
+            ? 'bg-primary/10 border-primary'
+            : 'bg-surface-container-low border-outline-variant/40 hover:border-outline'
+        )}
+        onClick={() => setExpanded(true)}
+      >
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className={cn(
+              'w-10 h-10 rounded-full flex items-center justify-center font-bold',
+              isActive ? 'bg-primary text-on-primary' : 'bg-secondary-container text-on-secondary-container'
+            )}>
+              {account.name.charAt(0).toUpperCase()}
+            </div>
+            {isActive && (
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-surface" />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <span className="font-medium text-on-surface">{account.name}</span>
+            <div className="text-xs text-on-surface-variant truncate">
+              {account.username || t('settings.account.noUsername')} • {hostname}
+            </div>
+          </div>
+          <i className="fas fa-chevron-up text-on-surface-variant text-sm" />
+        </div>
+      </div>
+
+      {expanded && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setExpanded(false)}
+        >
+          <div
+            className="bg-surface-container-high rounded-xl shadow-elevation-3 p-6 max-w-sm w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-on-surface flex items-center gap-2">
+                <i className="fas fa-user-circle text-primary" />
+                {account.name}
+              </h2>
+              <button
+                onClick={() => setExpanded(false)}
+                className="text-on-surface-variant hover:text-on-surface"
+              >
+                <i className="fas fa-times text-xl" />
+              </button>
+            </div>
+
+            <div className="flex flex-col items-center mb-6">
+              <div className="relative mb-3">
+                <div className={cn(
+                  'w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl',
+                  isActive ? 'bg-primary text-on-primary' : 'bg-secondary-container text-on-secondary-container'
+                )}>
+                  {account.name.charAt(0).toUpperCase()}
+                </div>
+                {isActive && (
+                  <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-surface-container-high" />
+                )}
+              </div>
+              <span className="font-bold text-on-surface">{account.name}</span>
+              <span className="text-sm text-on-surface-variant">
+                {account.username || t('settings.account.noUsername')} • {hostname}
+              </span>
+              {isActive && (
+                <span className="mt-2 text-xs text-green-600 font-medium">
+                  <i className="fas fa-check-circle mr-1" />
+                  {t('settings.account.currentlyActive')}
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              {!isActive && (
+                <button
+                  onClick={() => { onSetActive(); setExpanded(false); }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-on-primary font-medium hover:opacity-90 transition-opacity"
+                >
+                  <i className="fas fa-check-circle" />
+                  {t('settings.account.setActive')}
+                </button>
+              )}
+              <button
+                onClick={() => { onEdit(); setExpanded(false); }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-surface-container text-on-surface font-medium hover:bg-surface-container-highest transition-colors"
+              >
+                <i className="fas fa-edit" />
+                {t('settings.account.edit')}
+              </button>
+              <button
+                onClick={() => { onDelete(); setExpanded(false); }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-error-container text-on-error-container font-medium hover:opacity-90 transition-opacity"
+              >
+                <i className="fas fa-trash" />
+                {t('settings.account.delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
