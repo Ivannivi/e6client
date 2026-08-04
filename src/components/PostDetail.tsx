@@ -200,7 +200,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
               className="max-w-full max-h-full object-contain"
             />
           ) : (
-            <div className="relative flex items-center justify-center w-full h-full">
+            <div className="relative w-full h-full flex items-center justify-center min-h-0 min-w-0">
               <img
                 src={thumbnailSrc}
                 alt={`Post ${post.id}`}
