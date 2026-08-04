@@ -205,7 +205,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                 src={thumbnailSrc}
                 alt={`Post ${post.id}`}
                 className={cn(
-                  'max-w-full max-h-full object-contain transition-opacity duration-300',
+                  'w-full h-full object-contain transition-opacity duration-300',
                   fullImageLoaded && fullSrc !== thumbnailSrc ? 'opacity-0' : 'opacity-100'
                 )}
               />
@@ -216,7 +216,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
                   alt=""
                   onLoad={() => setFullImageLoaded(true)}
                   className={cn(
-                    'absolute max-w-full max-h-full object-contain transition-opacity duration-300',
+                    'absolute w-full h-full object-contain transition-opacity duration-300',
                     fullImageLoaded ? 'opacity-100' : 'opacity-0'
                   )}
                 />
