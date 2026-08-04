@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, KeyboardEvent } from 'react';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import type { Settings, Account } from '../types';
 import { getActiveAccount, createAccount } from '../types';
 import { api } from '../services/api';
@@ -288,8 +288,6 @@ function AccountTab({
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [showKey, setShowKey] = useState(false);
 
-  const activeAccount = getActiveAccount(settings);
-
   const handleAddAccount = () => {
     const newAccount = createAccount();
     setEditingAccount(newAccount);
@@ -480,23 +478,21 @@ function AccountTab({
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={cn(
-                    'w-10 h-10 rounded-full flex items-center justify-center font-bold',
-                    account.id === settings.activeAccountId
-                      ? 'bg-primary text-on-primary'
-                      : 'bg-secondary-container text-on-secondary-container'
-                  )}>
-                    {account.name.charAt(0).toUpperCase()}
+                  <div className="relative">
+                    <div className={cn(
+                      'w-10 h-10 rounded-full flex items-center justify-center font-bold',
+                      account.id === settings.activeAccountId
+                        ? 'bg-primary text-on-primary'
+                        : 'bg-secondary-container text-on-secondary-container'
+                    )}>
+                      {account.name.charAt(0).toUpperCase()}
+                    </div>
+                    {account.id === settings.activeAccountId && (
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-surface" />
+                    )}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-on-surface">{account.name}</span>
-                      {account.id === settings.activeAccountId && (
-                        <span className="text-xs bg-primary text-on-primary px-2 py-0.5 rounded-full">
-                          {t('settings.account.active')}
-                        </span>
-                      )}
-                    </div>
+                    <span className="font-medium text-on-surface">{account.name}</span>
                     <div className="text-xs text-on-surface-variant">
                       {account.username || t('settings.account.noUsername')} • {new URL(account.hostUrl).hostname}
                     </div>
@@ -530,19 +526,6 @@ function AccountTab({
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {activeAccount && (
-        <div className="bg-secondary-container/50 p-3 rounded-lg border border-secondary/30">
-          <p className="text-sm text-on-secondary-container">
-            <i className="fas fa-check-circle mr-2" />
-            <Trans
-              i18nKey="settings.account.usingAccount"
-              values={{ name: activeAccount.name, host: new URL(activeAccount.hostUrl).hostname }}
-              components={{ bold: <strong /> }}
-            />
-          </p>
         </div>
       )}
     </div>
