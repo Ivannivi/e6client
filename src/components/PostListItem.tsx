@@ -17,10 +17,6 @@ export function PostListItem({ post, settings, onClick }: Props) {
   const isVideo = isVideoFile(post.file.ext);
   const ratingDot = TAG_STYLES.ratingDot[post.rating] ?? TAG_STYLES.ratingDot.default;
 
-  const artists = post.tags.artist.length > 0
-    ? post.tags.artist.join(', ')
-    : t('postCard.unknownArtist');
-
   const topTags = [
     ...post.tags.character.slice(0, 2),
     ...post.tags.species.slice(0, 2),
@@ -68,9 +64,6 @@ export function PostListItem({ post, settings, onClick }: Props) {
                 {post.file.width}x{post.file.height}
               </span>
             </div>
-            <p className="text-xs text-on-surface-variant truncate mb-2">
-              {t('postList.byArtist', { artist: artists })}
-            </p>
             {topTags.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {topTags.map((tag) => (

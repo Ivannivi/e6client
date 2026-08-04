@@ -21,10 +21,6 @@ export function PostCard({ post, settings, onClick }: Props) {
   const height = post.preview.height || post.file.height;
   const aspectRatio = width && height ? `${width} / ${height}` : 'auto';
 
-  const artists = post.tags.artist.length > 0
-    ? post.tags.artist.join(', ')
-    : t('postCard.unknownArtist');
-
   return (
     <Ripple
       className="w-full rounded-md bg-surface-container-low shadow-elevation-1 hover:shadow-elevation-2 transition-shadow duration-200 cursor-pointer group"
@@ -78,7 +74,6 @@ export function PostCard({ post, settings, onClick }: Props) {
             <span className="flex items-center flex-shrink-0">
               <i className="fas fa-arrow-up text-primary mr-1" /> {post.score.total}
             </span>
-            <span className="truncate">{artists}</span>
           </div>
         </footer>
       </article>

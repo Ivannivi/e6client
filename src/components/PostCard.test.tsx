@@ -83,20 +83,13 @@ describe('PostCard', () => {
     expect(screen.getByAltText('Post 1')).not.toHaveClass('blur-xl');
   });
 
-  it('shows the unknownArtist translation when there are no artist tags', () => {
-    const post = makePost({ artist: [] });
-    post.preview.url = 'https://example.com/preview.png';
-    render(<PostCard post={post} settings={makeSettings()} onClick={() => {}} />);
-
-    expect(screen.getByText('postCard.unknownArtist')).toBeInTheDocument();
-  });
-
-  it('shows artist names when present', () => {
+  it('does not show artist names in the footer', () => {
     const post = makePost({ artist: ['alice', 'bob'] });
     post.preview.url = 'https://example.com/preview.png';
     render(<PostCard post={post} settings={makeSettings()} onClick={() => {}} />);
 
-    expect(screen.getByText('alice, bob')).toBeInTheDocument();
+    expect(screen.queryByText('alice, bob')).not.toBeInTheDocument();
+    expect(screen.queryByText('postCard.unknownArtist')).not.toBeInTheDocument();
   });
 
   it('shows a pending placeholder when preview.url is null', () => {
