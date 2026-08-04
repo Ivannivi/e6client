@@ -20,6 +20,25 @@ if (!document.execCommand) {
   document.execCommand = vi.fn(() => true);
 }
 
+// jsdom does not implement IntersectionObserver
+if (!window.IntersectionObserver) {
+  window.IntersectionObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+    takeRecords: vi.fn(() => []),
+  }));
+}
+
+// jsdom does not implement ResizeObserver
+if (!window.ResizeObserver) {
+  window.ResizeObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }));
+}
+
 afterEach(() => {
   cleanup();
 });
