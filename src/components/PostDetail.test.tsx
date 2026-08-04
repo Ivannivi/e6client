@@ -82,6 +82,20 @@ describe('PostDetail', () => {
     expect(container.querySelector('video')).toBeTruthy();
   });
 
+  it('shows a pending placeholder when all media urls are null', async () => {
+    apiMock.getComments.mockResolvedValue([]);
+    apiMock.getUsersByIds.mockResolvedValue([]);
+    apiMock.getUser.mockResolvedValue(null);
+    const post = makePost({}, { url: null });
+    expect(post.preview.url).toBeNull();
+    expect(post.sample.url).toBeNull();
+    const { container } = render(<PostDetail post={post} settings={makeSettings()} onClose={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText('postDetail.mediaPending')).toBeInTheDocument());
+    expect(screen.getByText('postDetail.mediaPendingHint')).toBeInTheDocument();
+    expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('video')).toBeNull();
+  });
+
   it('calls onClose when the backdrop is clicked', async () => {
     apiMock.getComments.mockResolvedValue([]);
     apiMock.getUsersByIds.mockResolvedValue([]);
