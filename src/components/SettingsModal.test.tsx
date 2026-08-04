@@ -116,8 +116,9 @@ describe('SettingsModal', () => {
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
-    const editBtn = screen.getByTitle('settings.account.edit');
-    fireEvent.click(editBtn);
+    // Click the account card to open the popout widget
+    fireEvent.click(screen.getByText('EditMe'));
+    fireEvent.click(screen.getByText('settings.account.edit'));
     expect(screen.getByText('settings.account.editAccount')).toBeInTheDocument();
   });
 
@@ -126,19 +127,20 @@ describe('SettingsModal', () => {
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
-    fireEvent.click(screen.getByTitle('settings.account.delete'));
+    fireEvent.click(screen.getByText('DeleteMe'));
+    fireEvent.click(screen.getByText('settings.account.delete'));
     expect(screen.getByText('settings.account.noAccounts')).toBeInTheDocument();
   });
 
   it('sets an account as active when set active button is clicked', () => {
-    const acc1 = makeAccount({ id: 'a1', name: 'A' });
-    const acc2 = makeAccount({ id: 'a2', name: 'B' });
+    const acc1 = makeAccount({ id: 'a1', name: 'Alpha' });
+    const acc2 = makeAccount({ id: 'a2', name: 'Beta' });
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [acc1, acc2], activeAccountId: 'a1' })} onUpdate={vi.fn()} />,
     );
-    const setActiveBtn = screen.getAllByTitle('settings.account.setActive')[0];
-    fireEvent.click(setActiveBtn);
-    // The active account shows a green dot badge on its pfp
+    // Open the popout for the inactive account and set it active
+    fireEvent.click(screen.getByText('Beta'));
+    fireEvent.click(screen.getByText('settings.account.setActive'));
     const greenDots = document.querySelectorAll('.bg-green-500.rounded-full');
     expect(greenDots).toHaveLength(1);
   });
@@ -227,7 +229,8 @@ describe('SettingsModal', () => {
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
-    fireEvent.click(screen.getByTitle('settings.account.edit'));
+    fireEvent.click(screen.getByText('Original'));
+    fireEvent.click(screen.getByText('settings.account.edit'));
     fireEvent.change(screen.getByPlaceholderText('settings.account.accountNamePlaceholder'), { target: { value: 'Renamed' } });
     fireEvent.click(screen.getByText('settings.account.saveAccount'));
     expect(screen.getByText('Renamed')).toBeInTheDocument();
@@ -238,7 +241,9 @@ describe('SettingsModal', () => {
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings()} onUpdate={vi.fn()} />,
     );
     fireEvent.click(screen.getByText('settings.account.addFirstAccount'));
-    fireEvent.click(screen.getByText('settings.account.back'));
+    // Click the cancel button inside the edit modal (the first one)
+    const cancelButtons = screen.getAllByText('settings.cancel');
+    fireEvent.click(cancelButtons[0]);
     expect(screen.getByText('settings.account.noAccounts')).toBeInTheDocument();
   });
 
