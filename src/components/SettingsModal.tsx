@@ -621,14 +621,14 @@ function BlacklistTab({
         />
 
         {settings.blacklistedTags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-1">
             {settings.blacklistedTags.map((tag) => (
               <span
                 key={tag}
-                className="py-1 text-sm flex items-center text-on-surface"
+                className="py-1 text-base font-medium flex items-center text-on-surface"
               >
                 {tag}
-                <button onClick={() => onRemoveTag(tag)} className="ml-1.5 text-error hover:opacity-80">
+                <button onClick={() => onRemoveTag(tag)} className="ml-2 text-error hover:opacity-80">
                   <i className="fas fa-times" />
                 </button>
               </span>
