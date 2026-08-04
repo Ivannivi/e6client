@@ -55,6 +55,11 @@ beforeEach(() => {
     addListener: vi.fn(), removeListener: vi.fn(),
     addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn(),
   }));
+  window.ResizeObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }));
   vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid' });
   apiMock.getPosts.mockReset();
   apiMock.searchTags.mockReset();

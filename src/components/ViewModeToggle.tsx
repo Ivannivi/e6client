@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ViewMode } from '../hooks/useViewMode';
 import { cn } from '../utils';
@@ -21,7 +21,7 @@ export function ViewModeToggle({ viewMode, onChange }: Props) {
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
   const [popKey, setPopKey] = useState(0);
 
-  useEffect(() => {
+  const updateIndicator = useCallback(() => {
     const activeBtn = btnRefs.current[viewMode];
     const container = containerRef.current;
     if (activeBtn && container) {
@@ -33,6 +33,19 @@ export function ViewModeToggle({ viewMode, onChange }: Props) {
       });
     }
   }, [viewMode]);
+
+  useEffect(() => {
+    updateIndicator();
+  }, [updateIndicator]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => updateIndicator());
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [updateIndicator]);
 
   return (
     <div ref={containerRef} className="relative flex rounded-full bg-surface-container p-1">
