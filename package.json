@@ -13,8 +13,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "electron": "electron electron/main.js",
-    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron electron/main.js\"",
+    "electron": "electron electron/main.cjs",
+    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron electron/main.cjs\"",
     "build-electron": "npm run build && electron-builder",
     "build-electron-linux": "npm run build && electron-builder --linux",
     "build-electron-windows": "npm run build && electron-builder --win",
@@ -46,7 +46,7 @@
     "vitest": "^3.0.0",
     "wait-on": "^7.2.0"
   },
-  "main": "electron/main.js",
+  "main": "electron/main.cjs",
   "build": {
     "appId": "com.e6client.app",
     "productName": "e6client",

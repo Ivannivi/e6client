@@ -28,3 +28,4 @@ android/.gradle/
 *.njsproj
 *.sln
 *.sw?
+.tmpbuild/
