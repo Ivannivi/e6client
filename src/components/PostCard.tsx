@@ -60,22 +60,16 @@ export function PostCard({ post, settings, onClick }: Props) {
               <i className="fas fa-images" />
             </span>
           )}
-        </div>
 
-        <footer className="p-3">
-          <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-            <span
-              className={cn('w-2 h-2 rounded-full flex-shrink-0', ratingDot)}
-              aria-hidden
-            />
-            <span className="flex items-center flex-shrink-0">
-              <i className="fas fa-heart text-tertiary mr-1" /> {post.fav_count}
+          <div className="absolute bottom-2 left-2 flex items-center gap-1.5 z-10">
+            <span className={cn('flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-bold text-white', ratingDot)}>
+              {post.rating.toUpperCase()}
             </span>
-            <span className="flex items-center flex-shrink-0">
-              <i className="fas fa-arrow-up text-primary mr-1" /> {post.score.total}
+            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/60 text-white text-xs font-bold">
+              <i className="fas fa-heart" /> {post.fav_count}
             </span>
           </div>
-        </footer>
+        </div>
       </article>
     </Ripple>
   );

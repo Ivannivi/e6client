@@ -83,13 +83,24 @@ describe('PostCard', () => {
     expect(screen.getByAltText('Post 1')).not.toHaveClass('blur-xl');
   });
 
-  it('does not show artist names in the footer', () => {
+  it('does not show artist names', () => {
     const post = makePost({ artist: ['alice', 'bob'] });
     post.preview.url = 'https://example.com/preview.png';
     render(<PostCard post={post} settings={makeSettings()} onClick={() => {}} />);
 
     expect(screen.queryByText('alice, bob')).not.toBeInTheDocument();
     expect(screen.queryByText('postCard.unknownArtist')).not.toBeInTheDocument();
+  });
+
+  it('shows rating and fav count as badges on the image', () => {
+    const post = makePost({}, { url: 'https://example.com/img.png' });
+    post.preview.url = 'https://example.com/preview.png';
+    post.rating = 'e';
+    post.fav_count = 42;
+    render(<PostCard post={post} settings={makeSettings()} onClick={() => {}} />);
+
+    expect(screen.getByText('E')).toBeInTheDocument();
+    expect(screen.getByText('42')).toBeInTheDocument();
   });
 
   it('shows a pending placeholder when preview.url is null', () => {
