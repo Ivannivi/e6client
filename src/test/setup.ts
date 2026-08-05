@@ -45,4 +45,9 @@ afterEach(() => {
 
 beforeEach(() => {
   localStorage.clear();
+  document.cookie.split(';').forEach((c) => {
+    const eq = c.indexOf('=');
+    const name = eq >= 0 ? c.slice(0, eq).trim() : c.trim();
+    document.cookie = `${name}=;path=/;max-age=0`;
+  });
 });

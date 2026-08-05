@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Settings, Account, createDefaultSettings, generateId } from '../types';
 import { APP_CONFIG } from '../config';
+import { cookieStorage } from '../utils/storage';
 
 function ensureGuestAccount(s: Settings): Settings {
   if (s.accounts.length > 0) return s;
@@ -17,7 +18,7 @@ function ensureGuestAccount(s: Settings): Settings {
 export function useSettings() {
   const [settings, setSettings] = useState<Settings>(() => {
     try {
-      const stored = localStorage.getItem(APP_CONFIG.storage.settingsKey);
+      const stored = cookieStorage.getItem(APP_CONFIG.storage.settingsKey);
       if (!stored) return createDefaultSettings();
       const parsed = JSON.parse(stored);
       const defaults = createDefaultSettings();
@@ -62,7 +63,7 @@ export function useSettings() {
   });
 
   useEffect(() => {
-    localStorage.setItem(APP_CONFIG.storage.settingsKey, JSON.stringify(settings));
+    cookieStorage.setItem(APP_CONFIG.storage.settingsKey, JSON.stringify(settings));
   }, [settings]);
 
   // Follow the system color scheme; no manual toggle.

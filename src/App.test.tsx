@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from './App';
 import { makePost, makeSettings, makeAccount, makeTagSuggestion, makeComment } from './test/factories';
+import { cookieStorage } from './utils/storage';
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -191,7 +192,7 @@ describe('App', () => {
     ok.id = 200;
     ok.preview.url = 'https://example.com/safe.png';
     apiMock.getPosts.mockResolvedValue([blacklisted, ok]);
-    localStorage.setItem('e6-settings', JSON.stringify({
+    cookieStorage.setItem('e6-settings', JSON.stringify({
       ...makeSettings({ blacklistedTags: ['gore'] }),
     }));
     render(<App />);
@@ -211,7 +212,7 @@ describe('App', () => {
 
   it('shows favorites tab when account is logged in', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    localStorage.setItem('e6-settings', JSON.stringify({
+    cookieStorage.setItem('e6-settings', JSON.stringify({
       ...makeSettings({ accounts: [account], activeAccountId: account.id }),
     }));
     render(<App />);
@@ -337,7 +338,7 @@ describe('App', () => {
 
   it('navigates to favorites via keyboard shortcut f when logged in', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    localStorage.setItem('e6-settings', JSON.stringify({
+    cookieStorage.setItem('e6-settings', JSON.stringify({
       ...makeSettings({ accounts: [account], activeAccountId: account.id }),
     }));
     apiMock.getPosts.mockResolvedValue([]);

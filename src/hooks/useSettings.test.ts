@@ -3,26 +3,35 @@ import { renderHook, act } from '@testing-library/react';
 import { useSettings } from './useSettings';
 import { createDefaultSettings } from '../types';
 import { makeAccount } from '../test/factories';
+import { cookieStorage } from '../utils/storage';
+
+function clearCookies() {
+  document.cookie.split(';').forEach((c) => {
+    const eq = c.indexOf('=');
+    const name = eq >= 0 ? c.slice(0, eq).trim() : c.trim();
+    document.cookie = `${name}=;path=/;max-age=0`;
+  });
+}
 
 describe('useSettings', () => {
   beforeEach(() => {
-    localStorage.clear();
+    clearCookies();
     vi.stubGlobal('crypto', {
       randomUUID: () => 'test-uuid',
     });
   });
 
-  it('returns default settings when localStorage is empty', () => {
+  it('returns default settings when storage is empty', () => {
     const { result } = renderHook(() => useSettings());
     expect(result.current.settings).toEqual(createDefaultSettings());
   });
 
-  it('persists settings to localStorage on change', () => {
+  it('persists settings to cookies on change', () => {
     const { result } = renderHook(() => useSettings());
     act(() => {
       result.current.updateSettings({ safeMode: true });
     });
-    const stored = JSON.parse(localStorage.getItem('e6-settings') || '{}');
+    const stored = JSON.parse(cookieStorage.getItem('e6-settings') || '{}');
     expect(stored.safeMode).toBe(true);
   });
 
@@ -53,7 +62,7 @@ describe('useSettings', () => {
       apiKey: 'legacy_key',
       safeMode: true,
     };
-    localStorage.setItem('e6-settings', JSON.stringify(oldFormat));
+    cookieStorage.setItem('e6-settings', JSON.stringify(oldFormat));
 
     const { result } = renderHook(() => useSettings());
 
@@ -66,7 +75,7 @@ describe('useSettings', () => {
 
   it('migrates old format without credentials into a guest e926 account', () => {
     const oldFormat = { username: '', apiKey: '', safeMode: false };
-    localStorage.setItem('e6-settings', JSON.stringify(oldFormat));
+    cookieStorage.setItem('e6-settings', JSON.stringify(oldFormat));
 
     const { result } = renderHook(() => useSettings());
 
@@ -75,7 +84,7 @@ describe('useSettings', () => {
     expect(result.current.settings.activeAccountId).toBe(result.current.settings.accounts[0].id);
   });
 
-  it('loads existing multi-account settings from localStorage', () => {
+  it('loads existing multi-account settings from cookies', () => {
     const account = makeAccount({ id: 'acc-1', name: 'Primary' });
     const stored = {
       ...createDefaultSettings(),
@@ -83,7 +92,7 @@ describe('useSettings', () => {
       activeAccountId: 'acc-1',
       safeMode: true,
     };
-    localStorage.setItem('e6-settings', JSON.stringify(stored));
+    cookieStorage.setItem('e6-settings', JSON.stringify(stored));
 
     const { result } = renderHook(() => useSettings());
 
@@ -93,14 +102,14 @@ describe('useSettings', () => {
   });
 
   it('falls back to defaults when stored JSON is corrupt', () => {
-    localStorage.setItem('e6-settings', '{not valid json');
+    cookieStorage.setItem('e6-settings', '{not valid json');
     const { result } = renderHook(() => useSettings());
     expect(result.current.settings).toEqual(createDefaultSettings());
   });
 
   it('normalizes a missing blacklistedTags array to the default', () => {
     const stored = { ...createDefaultSettings(), blacklistedTags: 'not-an-array' };
-    localStorage.setItem('e6-settings', JSON.stringify(stored));
+    cookieStorage.setItem('e6-settings', JSON.stringify(stored));
     const { result } = renderHook(() => useSettings());
     expect(Array.isArray(result.current.settings.blacklistedTags)).toBe(true);
   });
@@ -114,7 +123,7 @@ describe('useSettings', () => {
       safeMode: false,
       blacklistedTags: [],
     };
-    localStorage.setItem('e6-settings', JSON.stringify(stored));
+    cookieStorage.setItem('e6-settings', JSON.stringify(stored));
     const { result } = renderHook(() => useSettings());
 
     expect(result.current.settings.accounts).toHaveLength(1);
