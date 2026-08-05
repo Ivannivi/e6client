@@ -2,15 +2,6 @@ const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
 const isDev = process.env.NODE_ENV === 'development';
 
-// Run as a native Wayland client on Linux so the compositor
-// (e.g. Hyprland) handles HiDPI scaling. Without this Electron falls
-// back to XWayland, which gets double-scaled on fractional/HiDPI
-// displays — the window appears zoomed in 200%.
-if (process.platform === 'linux') {
-  app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform,WaylandWindowDecorations');
-  app.commandLine.appendSwitch('ozone-platform', 'wayland');
-}
-
 // Keep a global reference of the window object
 let mainWindow;
 
