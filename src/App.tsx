@@ -320,7 +320,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface flex flex-col pb-24 md:pb-0">
+    <div className="h-screen bg-surface text-on-surface flex flex-col overflow-hidden pb-24 md:pb-0">
       {/* Top app bar */}
       <header className="sticky top-0 z-40 bg-surface-container border-b border-outline-variant/40 pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 flex items-center gap-4">
@@ -406,7 +406,7 @@ export default function App() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 container mx-auto px-4 py-6">
+      <main className="flex-1 container mx-auto px-4 py-6 overflow-y-auto">
         <div className="hidden md:flex items-center justify-between mb-6">
           <TabBar active={tab} onChange={handleTabChange} settings={settings} />
           <div className="flex items-center gap-4">
