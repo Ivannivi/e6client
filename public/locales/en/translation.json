@@ -41,7 +41,8 @@
     "tabs": {
       "account": "Account",
       "blacklist": "Blacklist",
-      "network": "Network"
+      "network": "Network",
+      "shortcuts": "Shortcuts"
     },
     "account": {
       "title": "Accounts",
@@ -139,7 +140,7 @@
     "toggleViewMode": "Toggle view mode",
     "closeModal": "Close modal/overlay",
     "showHelp": "Show this help",
-    "footer": "Press <kbd>?</kbd> anytime to show this help"
+    "footer": "Shortcuts are disabled while typing in a text field."
   },
   "viewMode": {
     "grid": "Grid",

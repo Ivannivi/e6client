@@ -34,10 +34,6 @@ describe('components barrel export', () => {
     expect(Components.QuickActions).toBeDefined();
   });
 
-  it('exports KeyboardShortcutsHelp', () => {
-    expect(Components.KeyboardShortcutsHelp).toBeDefined();
-  });
-
   it('exports Ripple', () => {
     expect(Components.Ripple).toBeDefined();
   });

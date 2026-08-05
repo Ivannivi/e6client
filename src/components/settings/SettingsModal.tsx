@@ -13,7 +13,7 @@ interface Props {
   onUpdate: (s: Partial<Settings>) => void;
 }
 
-type Tab = 'account' | 'network' | 'blacklist';
+type Tab = 'account' | 'network' | 'blacklist' | 'shortcuts';
 
 type SyncStatus = 'error' | 'success' | null;
 
@@ -21,6 +21,7 @@ const TABS: { id: Tab; labelKey: string; icon: string }[] = [
   { id: 'account', labelKey: 'settings.tabs.account', icon: 'fa-user' },
   { id: 'blacklist', labelKey: 'settings.tabs.blacklist', icon: 'fa-ban' },
   { id: 'network', labelKey: 'settings.tabs.network', icon: 'fa-network-wired' },
+  { id: 'shortcuts', labelKey: 'settings.tabs.shortcuts', icon: 'fa-keyboard' },
 ];
 
 export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
@@ -229,6 +230,8 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
               onApplyDemo={applyDemoProxy}
             />
           )}
+
+          {activeTab === 'shortcuts' && <ShortcutsTab />}
         </div>
       </div>
 
@@ -779,6 +782,45 @@ function NetworkTab({
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function ShortcutsTab() {
+  const { t } = useTranslation();
+  const shortcuts = [
+    { key: '/', description: t('shortcutsHelp.focusSearchBar') },
+    { key: 'R', description: t('shortcutsHelp.refreshPosts') },
+    { key: 'X', description: t('shortcutsHelp.loadRandomPost') },
+    { key: 'S', description: t('shortcutsHelp.openSettings') },
+    { key: 'H', description: t('shortcutsHelp.goHome') },
+    { key: 'F', description: t('shortcutsHelp.goFavorites') },
+    { key: 'V', description: t('shortcutsHelp.toggleViewMode') },
+    { key: 'Esc', description: t('shortcutsHelp.closeModal') },
+  ];
+
+  return (
+    <div className="space-y-3 animate-fade-in">
+      <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
+        <i className="fas fa-keyboard text-primary" />
+        {t('shortcutsHelp.title')}
+      </h3>
+      <div className="space-y-1">
+        {shortcuts.map(({ key, description }) => (
+          <div
+            key={key}
+            className="flex items-center justify-between py-2 border-b border-outline-variant/40 last:border-0"
+          >
+            <span className="text-on-surface-variant">{description}</span>
+            <kbd className="px-3 py-1.5 bg-surface-container-highest rounded-sm text-sm font-mono font-bold text-on-surface">
+              {key}
+            </kbd>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-on-surface-variant">
+        {t('shortcutsHelp.footer')}
+      </p>
     </div>
   );
 }
