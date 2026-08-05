@@ -132,6 +132,59 @@ jobs:
           name: android-apk
           path: android/app/build/outputs/apk/release/e6client-*-android.apk
 
+  build-ios:
+    needs: [typecheck, test]
+    if: github.event_name != 'pull_request'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Read version from package.json
+        id: pkg
+        run: |
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "build_number=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync Capacitor
+        run: npx cap sync ios
+
+      - name: Set iOS version and build number
+        run: |
+          cd ios/App
+          agvtool new-marketing-version "${{ steps.pkg.outputs.version }}"
+          agvtool new-version -all ${{ steps.pkg.outputs.build_number }}
+
+      - name: Build iOS app (no signing)
+        run: |
+          cd ios/App
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
+
+      - name: Create IPA
+        run: |
+          mkdir -p ios/App/build/Payload
+          cp -r ios/App/build/Build/Products/Release-iphoneos/App.app ios/App/build/Payload/
+          cd ios/App/build
+          zip -r "e6client-${{ steps.pkg.outputs.version }}-ios.ipa" Payload
+
+      - name: Upload iOS IPA
+        uses: actions/upload-artifact@v5
+        with:
+          name: ios-ipa
+          path: ios/App/build/e6client-*-ios.ipa
+
   build-linux:
     needs: [typecheck, test]
     if: github.event_name != 'pull_request'
@@ -253,7 +306,7 @@ jobs:
             dist/*.zip
 
   release:
-    needs: [build-android, build-linux, build-windows, build-macos]
+    needs: [build-android, build-ios, build-linux, build-windows, build-macos]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
@@ -292,6 +345,7 @@ jobs:
           generate_release_notes: true
           files: |
             artifacts/android-apk/*
+            artifacts/ios-ipa/*
             artifacts/linux-x64-artifacts/*
             artifacts/linux-arm64-artifacts/*
             artifacts/windows-x64-artifacts/*
