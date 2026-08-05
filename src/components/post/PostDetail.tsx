@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { Post, Settings, Comment } from '../../types';
 import { api } from '../../services/api';
 import { RATING, TAG_STYLES } from '../../config';
-import { formatFileSize, cn, downloadFile, shareContent, generatePostFilename, copyToClipboard } from '../../utils';
+import { formatFileSize, isVideoFile, cn, downloadFile, shareContent, generatePostFilename, copyToClipboard } from '../../utils';
 
 interface Props {
   post: Post;
@@ -16,7 +16,7 @@ type TagCategory = keyof typeof TAG_STYLES.category;
 
 export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
   const { t } = useTranslation();
-  const isVideo = ['webm', 'mp4'].includes(post.file.ext);
+  const isVideo = isVideoFile(post.file.ext);
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
