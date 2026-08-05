@@ -18,7 +18,7 @@ function createWindow() {
       enableRemoteModule: false,
       preload: path.join(__dirname, 'preload.cjs')
     },
-    icon: path.join(__dirname, '../public/favicon.ico'), // Add icon if available
+    icon: path.join(__dirname, '../public/icon.png'),
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     show: false // Don't show until ready
   });
