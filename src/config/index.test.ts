@@ -4,7 +4,7 @@ import { APP_CONFIG, RATING, TAG_STYLES, type TagCategory } from './index';
 describe('APP_CONFIG', () => {
   it('exposes a stable name and version', () => {
     expect(APP_CONFIG.name).toBe('e6client');
-    expect(APP_CONFIG.version).toBe('1.0.0');
+    expect(APP_CONFIG.version).toBe('1.2.0');
   });
 
   it('has sane api defaults', () => {
