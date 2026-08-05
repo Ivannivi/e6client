@@ -40,10 +40,17 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
-  // Show window when ready to prevent visual flash
-  mainWindow.once('ready-to-show', () => {
+  // Show window when ready to prevent visual flash.
+  // Under Wayland the ready-to-show event can be unreliable, so
+  // fall back to showing after a short timeout.
+  let shown = false;
+  const showWindow = () => {
+    if (shown || !mainWindow) return;
+    shown = true;
     mainWindow.show();
-  });
+  };
+  mainWindow.once('ready-to-show', showWindow);
+  setTimeout(showWindow, 2000);
 
   // Emitted when the window is closed
   mainWindow.on('closed', () => {
