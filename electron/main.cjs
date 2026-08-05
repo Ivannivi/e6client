@@ -6,15 +6,11 @@ const isDev = process.env.NODE_ENV === 'development';
 let mainWindow;
 
 function createWindow() {
-  // Create the browser window. On HiDPI/Wayland the BrowserWindow
-  // dimensions are in physical pixels, so scale up by the display's
-  // factor to get a reasonable CSS-pixel size.
-  const factor = require('electron').screen.getPrimaryDisplay().scaleFactor || 1;
   mainWindow = new BrowserWindow({
-    width: Math.round(1200 * factor),
-    height: Math.round(800 * factor),
-    minWidth: Math.round(800 * factor),
-    minHeight: Math.round(600 * factor),
+    width: 1200,
+    height: 800,
+    minWidth: 800,
+    minHeight: 600,
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,
@@ -24,30 +20,20 @@ function createWindow() {
     },
     icon: path.join(__dirname, '../public/icon.png'),
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
-    show: false // Don't show until ready
+    show: false
   });
 
   // Load the app
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
-    // Open DevTools in a separate window so it doesn't resize the
-    // main viewport and break the layout.
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
+    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
-  // Show window when ready to prevent visual flash.
-  // Under Wayland the ready-to-show event can be unreliable, so
-  // fall back to showing after a short timeout.
-  let shown = false;
-  const showWindow = () => {
-    if (shown || !mainWindow) return;
-    shown = true;
+  mainWindow.once('ready-to-show', () => {
     mainWindow.show();
-  };
-  mainWindow.once('ready-to-show', showWindow);
-  setTimeout(showWindow, 2000);
+  });
 
   // Emitted when the window is closed
   mainWindow.on('closed', () => {

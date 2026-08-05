@@ -3,12 +3,6 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-html, body, #root {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-}
-
 /*
  * Material Design 3 tokens.
  * Roles (light/dark) are approximated by hand from the e621 client's
