@@ -285,6 +285,13 @@ describe('App', () => {
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
   });
 
+  it('renders the logo image with a non-empty src', async () => {
+    render(<App />);
+    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    const logo = screen.getByAltText('e6client') as HTMLImageElement;
+    expect(logo.src).not.toBe('');
+  });
+
   it('renders compact view cards', async () => {
     const post = makePost({ artist: ['a'] }, { url: 'https://example.com/i.png' });
     post.preview.url = 'https://example.com/p.png';
