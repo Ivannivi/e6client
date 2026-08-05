@@ -86,6 +86,17 @@ describe('SettingsModal', () => {
     expect(screen.getByText('settings.network.enableProxy')).toBeInTheDocument();
   });
 
+  it('shows keyboard shortcuts list in the shortcuts tab', () => {
+    render(
+      <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings()} onUpdate={vi.fn()} />,
+    );
+    fireEvent.click(screen.getByText('settings.tabs.shortcuts'));
+    expect(screen.getByText('shortcutsHelp.title')).toBeInTheDocument();
+    expect(screen.getByText('shortcutsHelp.focusSearchBar')).toBeInTheDocument();
+    expect(screen.getByText('shortcutsHelp.toggleViewMode')).toBeInTheDocument();
+    expect(screen.getByText('shortcutsHelp.footer')).toBeInTheDocument();
+  });
+
   it('shows no accounts message when accounts is empty', () => {
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings()} onUpdate={vi.fn()} />,

@@ -136,8 +136,8 @@ describe('App', () => {
   it('opens keyboard shortcuts help when help button is clicked', async () => {
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    const helpBtn = screen.getByTitle(/shortcuts.help/);
-    fireEvent.click(helpBtn);
+    fireEvent.click(screen.getByTitle(/shortcuts.settings/));
+    fireEvent.click(screen.getByText('settings.tabs.shortcuts'));
     expect(screen.getByText('shortcutsHelp.title')).toBeInTheDocument();
   });
 
@@ -308,13 +308,6 @@ describe('App', () => {
     expect(screen.getByText('settings.title')).toBeInTheDocument();
   });
 
-  it('opens shortcuts help via keyboard shortcut ?', async () => {
-    render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    fireEvent.keyDown(document.body, { key: '?' });
-    expect(screen.getByText('shortcutsHelp.title')).toBeInTheDocument();
-  });
-
   it('toggles view mode via keyboard shortcut v', async () => {
     render(<App />);
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
@@ -330,15 +323,6 @@ describe('App', () => {
     apiMock.getPosts.mockClear();
     fireEvent.keyDown(document.body, { key: 'r' });
     await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-  });
-
-  it('closes shortcuts help via Escape keyboard shortcut', async () => {
-    render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    fireEvent.keyDown(document.body, { key: '?' });
-    expect(screen.getByText('shortcutsHelp.title')).toBeInTheDocument();
-    fireEvent.keyDown(document.body, { key: 'Escape' });
-    await waitFor(() => expect(screen.queryByText('shortcutsHelp.title')).not.toBeInTheDocument());
   });
 
   it('navigates home via keyboard shortcut h', async () => {

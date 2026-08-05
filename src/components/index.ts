@@ -6,5 +6,4 @@ export { ToastContainer } from './ui/Toast';
 export { SearchHistory } from './ui/SearchHistory';
 export { ViewModeToggle } from './ui/ViewModeToggle';
 export { QuickActions } from './ui/QuickActions';
-export { KeyboardShortcutsHelp } from './ui/KeyboardShortcutsHelp';
 export { Ripple } from './ui/Ripple';

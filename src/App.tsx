@@ -11,7 +11,6 @@ import { ToastContainer } from './components/ui/Toast';
 import { SearchHistory } from './components/ui/SearchHistory';
 import { ViewModeToggle } from './components/ui/ViewModeToggle';
 import { QuickActions } from './components/ui/QuickActions';
-import { KeyboardShortcutsHelp } from './components/ui/KeyboardShortcutsHelp';
 import { useSettings } from './hooks/useSettings';
 import { 
   useDebounce, 
@@ -57,7 +56,6 @@ export default function App() {
 
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [shortcutsHelpOpen, setShortcutsHelpOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<TagSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -177,10 +175,6 @@ export default function App() {
         setSettingsOpen(false);
         return;
       }
-      if (shortcutsHelpOpen) {
-        setShortcutsHelpOpen(false);
-        return;
-      }
       goBack();
     };
 
@@ -189,7 +183,7 @@ export default function App() {
     return () => {
       CapacitorApp.removeAllListeners();
     };
-  }, [settingsOpen, shortcutsHelpOpen, goBack]);
+  }, [settingsOpen, goBack]);
 
   // Tab switch (Browse/Favorites) keeps the current query, like the original.
   const handleTabChange = useCallback((newTab: Tab) => {
@@ -244,7 +238,6 @@ export default function App() {
       action: () => {
         if (selectedPost) goBack();
         else if (settingsOpen) setSettingsOpen(false);
-        else if (shortcutsHelpOpen) setShortcutsHelpOpen(false);
       },
       description: t('shortcuts.close'),
     },
@@ -265,11 +258,6 @@ export default function App() {
       key: 'v',
       action: toggleViewMode,
       description: t('shortcuts.toggleView'),
-    },
-    {
-      key: '?',
-      action: () => setShortcutsHelpOpen(true),
-      description: t('shortcuts.help'),
     },
   ], !settingsOpen && !selectedPost);
 
@@ -422,14 +410,6 @@ export default function App() {
           <TabBar active={tab} onChange={handleTabChange} settings={settings} />
           <div className="flex items-center gap-4">
             <ViewModeToggle viewMode={viewMode} onChange={setViewMode} />
-            <Ripple
-              className="rounded-full text-on-surface-variant"
-              onClick={() => setShortcutsHelpOpen(true)}
-            >
-              <span className="flex items-center justify-center w-10 h-10" title={`${t('shortcuts.help')} (?)`}>
-                <i className="fas fa-keyboard" />
-              </span>
-            </Ripple>
           </div>
         </div>
 
@@ -516,12 +496,6 @@ export default function App() {
           updateSettings(patch);
           if (patch.enableProxy && error) setError(null);
         }}
-      />
-
-      {/* Keyboard shortcuts help */}
-      <KeyboardShortcutsHelp
-        isOpen={shortcutsHelpOpen}
-        onClose={() => setShortcutsHelpOpen(false)}
       />
 
       {/* Toast notifications */}
