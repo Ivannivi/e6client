@@ -6,12 +6,15 @@ const isDev = process.env.NODE_ENV === 'development';
 let mainWindow;
 
 function createWindow() {
-  // Create the browser window
+  // Create the browser window. On HiDPI/Wayland the BrowserWindow
+  // dimensions are in physical pixels, so scale up by the display's
+  // factor to get a reasonable CSS-pixel size.
+  const factor = require('electron').screen.getPrimaryDisplay().scaleFactor || 1;
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    minWidth: 800,
-    minHeight: 600,
+    width: Math.round(1200 * factor),
+    height: Math.round(800 * factor),
+    minWidth: Math.round(800 * factor),
+    minHeight: Math.round(600 * factor),
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,

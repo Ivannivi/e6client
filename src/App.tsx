@@ -322,7 +322,7 @@ export default function App() {
   return (
     <div className="h-full bg-surface text-on-surface flex flex-col overflow-hidden">
       {/* Top app bar */}
-      <header className="sticky top-0 z-40 bg-surface-container border-b border-outline-variant/40 pt-[env(safe-area-inset-top)]">
+      <header className="flex-none z-40 bg-surface-container border-b border-outline-variant/40 pt-[env(safe-area-inset-top)]">
         <div className="container mx-auto px-4 py-3 flex items-center gap-4">
           <button className="flex items-center gap-2 cursor-pointer" onClick={goHome}>
             <img src={iconUrl} alt="e6client" className="w-8 h-8 rounded-md" />
