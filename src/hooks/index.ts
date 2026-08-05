@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback, RefObject } from 'react';
+import { useState, useEffect, RefObject } from 'react';
 import { APP_CONFIG } from '../config';
 
 export { useSearchHistory } from './useSearchHistory';
-export { useKeyboardShortcuts, SHORTCUT_DESCRIPTIONS } from './useKeyboardShortcuts';
+export { useKeyboardShortcuts } from './useKeyboardShortcuts';
 export { useToast } from './useToast';
 export { useViewMode } from './useViewMode';
 export type { ViewMode } from './useViewMode';
@@ -60,31 +60,4 @@ export function useIntersectionObserver(
 
     return () => observer.disconnect();
   }, [ref, callback, threshold, rootMargin]);
-}
-
-export function useLocalStorage<T>(
-  key: string,
-  initialValue: T
-): [T, (value: T | ((prev: T) => T)) => void] {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    try {
-      const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch {
-      return initialValue;
-    }
-  });
-
-  const setValue = useCallback(
-    (value: T | ((prev: T) => T)) => {
-      setStoredValue((prev) => {
-        const next = value instanceof Function ? value(prev) : value;
-        localStorage.setItem(key, JSON.stringify(next));
-        return next;
-      });
-    },
-    [key]
-  );
-
-  return [storedValue, setValue];
 }

@@ -5,7 +5,6 @@ import {
   useDebounce,
   useColumnCount,
   useIntersectionObserver,
-  useLocalStorage,
 } from './index';
 
 describe('useDebounce', () => {
@@ -126,41 +125,6 @@ describe('useColumnCount', () => {
     });
 
     expect(result.current).toBe(2);
-  });
-});
-
-describe('useLocalStorage', () => {
-  it('returns the initial value when the key is not set', () => {
-    const { result } = renderHook(() => useLocalStorage('missing', 'default'));
-    expect(result.current[0]).toBe('default');
-  });
-
-  it('returns the stored value from localStorage', () => {
-    localStorage.setItem('existing', JSON.stringify('stored'));
-    const { result } = renderHook(() => useLocalStorage('existing', 'default'));
-    expect(result.current[0]).toBe('stored');
-  });
-
-  it('updates localStorage when the value changes', () => {
-    const { result } = renderHook(() => useLocalStorage('key', 'initial'));
-
-    act(() => {
-      result.current[1]('updated');
-    });
-
-    expect(result.current[0]).toBe('updated');
-    expect(localStorage.getItem('key')).toBe(JSON.stringify('updated'));
-  });
-
-  it('accepts a function updater', () => {
-    const { result } = renderHook(() => useLocalStorage<number>('count', 0));
-
-    act(() => {
-      result.current[1]((prev) => prev + 1);
-    });
-
-    expect(result.current[0]).toBe(1);
-    expect(localStorage.getItem('count')).toBe(JSON.stringify(1));
   });
 });
 
