@@ -21,7 +21,7 @@ import {
   useToast,
   useViewMode,
 } from './hooks';
-import { isPostBlacklisted, distributeToColumns, cn } from './utils';
+import { isPostBlacklisted, distributeToColumns, isVideoFile, cn } from './utils';
 import { TAG_STYLES } from './config';
 import { Ripple } from './components/ui/Ripple';
 import iconUrl from '/icon.svg';
@@ -646,7 +646,7 @@ function MobileNavItem({
 
 /* Compact card for dense grid view */
 function CompactCard({ post, settings, onClick }: { key?: Key; post: Post; settings: Settings; onClick: (post: Post) => void }) {
-  const isVideo = ['webm', 'mp4'].includes(post.file.ext);
+  const isVideo = isVideoFile(post.file.ext);
   const ratingDot = TAG_STYLES.ratingDot[post.rating] ?? TAG_STYLES.ratingDot.default;
 
   return (

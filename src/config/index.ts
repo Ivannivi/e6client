@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   name: 'e6client',
-  version: '1.0.0',
+  version: '1.2.0',
   api: {
     baseUrl: 'https://e621.net',
     timeout: 15000,
@@ -33,8 +33,6 @@ export const RATING = {
     e: 'Explicit',
   } as Record<string, string>,
 } as const;
-
-export type Rating = 's' | 'q' | 'e';
 
 export const TAG_STYLES = {
   category: {
