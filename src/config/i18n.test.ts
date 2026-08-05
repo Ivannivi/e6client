@@ -64,10 +64,17 @@ describe('i18n configuration', () => {
     expect(initCall.lng).toBeUndefined();
   });
 
-  it('configures the fetch backend with the correct load path', async () => {
+  it('bundles English translations as resources', async () => {
     await import('./i18n');
     const initCall = mockInit.mock.calls[0][0];
-    expect(initCall.backend.loadPath).toBe('/locales/{{lng}}/{{ns}}.json');
+    expect(initCall.resources.en.translation).toBeDefined();
+    expect(initCall.resources.en.translation.app.title).toBe('Client');
+  });
+
+  it('does not use a fetch backend', async () => {
+    await import('./i18n');
+    const initCall = mockInit.mock.calls[0][0];
+    expect(initCall.backend).toBeUndefined();
   });
 
   it('configures language detection with cookie and navigator', async () => {
@@ -82,78 +89,5 @@ describe('i18n configuration', () => {
     await import('./i18n');
     const initCall = mockInit.mock.calls[0][0];
     expect(initCall.interpolation.escapeValue).toBe(false);
-  });
-
-  it('fetchBackend.read fetches translations successfully', async () => {
-    const mockJson = { hello: 'world' };
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockJson),
-    });
-    vi.stubGlobal('fetch', mockFetch);
-
-    await import('./i18n');
-
-    // The backend is passed to i18n.use(), so we can get it from the mock calls
-    const useCalls = mockUse.mock.calls;
-    expect(useCalls.length).toBeGreaterThan(0);
-    // The first call to use() is the fetchBackend
-    const backend = useCalls[0][0];
-    expect(backend.type).toBe('backend');
-
-    const callback = vi.fn();
-    backend.read('en', 'translation', callback);
-
-    expect(mockFetch).toHaveBeenCalledWith('/locales/en/translation.json');
-    await vi.waitFor(() => expect(callback).toHaveBeenCalledWith(null, mockJson));
-  });
-
-  it('fetchBackend.read handles non-ok response', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({ ok: false, status: 404 });
-    vi.stubGlobal('fetch', mockFetch);
-
-    await import('./i18n');
-
-    const backend = mockUse.mock.calls[0][0];
-    const callback = vi.fn();
-    backend.read('fr', 'translation', callback);
-
-    await vi.waitFor(() => {
-      expect(callback).toHaveBeenCalled();
-      expect(callback.mock.calls[0][0]).toBeInstanceOf(Error);
-    });
-  });
-
-  it('fetchBackend.read handles fetch error', async () => {
-    const mockFetch = vi.fn().mockRejectedValue(new Error('network'));
-    vi.stubGlobal('fetch', mockFetch);
-
-    await import('./i18n');
-
-    const backend = mockUse.mock.calls[0][0];
-    const callback = vi.fn();
-    backend.read('de', 'translation', callback);
-
-    await vi.waitFor(() => {
-      expect(callback).toHaveBeenCalled();
-      expect(callback.mock.calls[0][0]).toBeInstanceOf(Error);
-    });
-  });
-
-  it('fetchBackend.read handles non-Error rejection', async () => {
-    const mockFetch = vi.fn().mockRejectedValue('string error');
-    vi.stubGlobal('fetch', mockFetch);
-
-    await import('./i18n');
-
-    const backend = mockUse.mock.calls[0][0];
-    const callback = vi.fn();
-    backend.read('es', 'translation', callback);
-
-    await vi.waitFor(() => {
-      expect(callback).toHaveBeenCalled();
-      expect(callback.mock.calls[0][0]).toBeInstanceOf(Error);
-      expect(callback.mock.calls[0][0].message).toBe('string error');
-    });
   });
 });
