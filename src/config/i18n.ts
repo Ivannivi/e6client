@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { APP_CONFIG } from './index';
+import { cookieStorage } from '../utils/storage';
 
 const LOAD_PATH = '/locales/{{lng}}/{{ns}}.json';
 
@@ -32,7 +33,7 @@ const fetchBackend = {
 
 function getStoredLanguage(): string | undefined {
   try {
-    const raw = localStorage.getItem(APP_CONFIG.storage.settingsKey);
+    const raw = cookieStorage.getItem(APP_CONFIG.storage.settingsKey);
     if (raw) {
       const parsed = JSON.parse(raw) as { language?: string };
       if (parsed.language) return parsed.language;
@@ -56,9 +57,9 @@ i18n
       loadPath: LOAD_PATH,
     },
     detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
-      lookupLocalStorage: 'i18nextLng',
+      order: ['cookie', 'navigator'],
+      caches: ['cookie'],
+      lookupCookie: 'i18nextLng',
     },
     interpolation: {
       escapeValue: false,
