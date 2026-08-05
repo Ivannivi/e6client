@@ -406,7 +406,7 @@ export default function App() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 container mx-auto px-4 py-6 overflow-y-auto pb-24 md:pb-6">
+      <main className="flex-1 min-h-0 container mx-auto px-4 py-6 overflow-y-auto pb-24 md:pb-6">
         <div className="hidden md:flex items-center justify-between mb-6">
           <TabBar active={tab} onChange={handleTabChange} settings={settings} />
           <div className="flex items-center gap-4">
