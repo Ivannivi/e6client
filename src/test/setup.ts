@@ -2,6 +2,22 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
+// Some test environments (e.g. Node 26) do not expose a usable localStorage global.
+if (!globalThis.localStorage) {
+  const store = new Map<string, string>();
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => store.set(key, String(value)),
+      removeItem: (key: string) => store.delete(key),
+      clear: () => store.clear(),
+      key: (index: number) => Array.from(store.keys())[index] ?? null,
+      get length() { return store.size; },
+    },
+    configurable: true,
+  });
+}
+
 // jsdom does not implement matchMedia or execCommand
 if (!window.matchMedia) {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
