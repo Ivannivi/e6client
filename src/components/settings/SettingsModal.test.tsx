@@ -201,6 +201,7 @@ describe('SettingsModal', () => {
     );
     fireEvent.click(screen.getByText('settings.tabs.network'));
     expect(screen.getByPlaceholderText('settings.network.proxyPlaceholder')).toBeInTheDocument();
+    expect(screen.getByText('settings.network.authProxyWarning')).toBeInTheDocument();
   });
 
   it('applies demo proxy when the demo button is clicked', () => {

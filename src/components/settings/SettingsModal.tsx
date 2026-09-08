@@ -780,6 +780,10 @@ function NetworkTab({
             <i className="fas fa-exclamation-triangle mr-1" />
             {t('settings.network.proxyWarning')}
           </p>
+          <p className="text-xs text-orange-500 mt-1">
+            <i className="fas fa-shield-halved mr-1" />
+            {t('settings.network.authProxyWarning')}
+          </p>
         </div>
       )}
     </div>
@@ -824,4 +828,3 @@ function ShortcutsTab() {
     </div>
   );
 }
-

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { api, parseApiError } from './api';
+import { api, buildApiUrl, parseApiError, ProxyAuthenticationError } from './api';
 import { makeSettings, makeAccount, makeRawPost, makeUser, makeComment, makeTagSuggestion } from '../test/factories';
 
 const { httpGet } = vi.hoisted(() => ({ httpGet: vi.fn() }));
@@ -279,5 +279,59 @@ describe('api url building (via getPosts)', () => {
 
     const calledUrl = httpGet.mock.calls[0][0] as string;
     expect(calledUrl.startsWith('https://corsproxy.io/?')).toBe(true);
+  });
+
+  it.each([
+    ['query-style proxy', 'https://corsproxy.io/?'],
+    ['base-url replacement proxy', 'https://proxy.example.test'],
+  ])('never sends credentials through a %s', async (_, proxyUrl) => {
+    httpGet.mockResolvedValue(makeAxiosResponse([]));
+    const account = makeAccount({ username: 'alice', apiKey: 'secret-key' });
+    const settings = makeSettings({
+      accounts: [account],
+      activeAccountId: account.id,
+      enableProxy: true,
+      proxyUrl,
+    });
+
+    await api.getPosts(settings);
+
+    const calledUrl = decodeURIComponent(httpGet.mock.calls[0][0] as string);
+    expect(calledUrl).not.toContain('login=alice');
+    expect(calledUrl).not.toContain('api_key=secret-key');
+  });
+
+  it('fails an authenticated request before constructing an untrusted proxy URL', () => {
+    const account = makeAccount({ username: 'alice', apiKey: 'secret-key' });
+    const settings = makeSettings({
+      accounts: [account],
+      activeAccountId: account.id,
+      enableProxy: true,
+      proxyUrl: 'https://corsproxy.io/?',
+    });
+
+    expect(() => buildApiUrl('/favorites.json', {}, settings, 'required'))
+      .toThrow(ProxyAuthenticationError);
+    expect(() => buildApiUrl('/favorites.json', {}, settings, 'required'))
+      .toThrow('Authenticated requests require a direct or trusted connection');
+  });
+
+  it('fails an authenticated request through an untrusted proxy even without saved credentials', () => {
+    const settings = makeSettings({
+      enableProxy: true,
+      proxyUrl: 'https://corsproxy.io/?',
+    });
+
+    expect(() => buildApiUrl('/favorites.json', {}, settings, 'required'))
+      .toThrow(ProxyAuthenticationError);
+  });
+});
+
+describe('proxy authentication errors', () => {
+  it('provides an actionable error without exposing credentials or proxy URLs', () => {
+    const message = parseApiError(new ProxyAuthenticationError());
+    expect(message).toContain('Disable the proxy');
+    expect(message).not.toContain('secret-key');
+    expect(message).not.toContain('corsproxy.io');
   });
 });
