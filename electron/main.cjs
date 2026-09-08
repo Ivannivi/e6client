@@ -1,9 +1,29 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, safeStorage } = require('electron');
 const path = require('path');
+const { pathToFileURL } = require('url');
+const { createSecureCredentialStore } = require('./credential-store.cjs');
+const { registerCredentialIpc } = require('./credential-ipc.cjs');
 const isDev = process.env.NODE_ENV === 'development';
 
 // Keep a global reference of the window object
 let mainWindow;
+
+function isAppRendererUrl(url) {
+  if (isDev) {
+    try {
+      return new URL(url).origin === 'http://localhost:5173';
+    } catch {
+      return false;
+    }
+  }
+  const indexUrl = pathToFileURL(path.join(__dirname, '../dist/index.html')).href;
+  return url === indexUrl || url.startsWith(`${indexUrl}#`);
+}
+
+function isTrustedCredentialSender(event) {
+  if (!mainWindow || event.sender !== mainWindow.webContents || event.sender.isDestroyed()) return false;
+  return isAppRendererUrl(event.sender.getURL());
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -125,7 +145,14 @@ function createMenu() {
 }
 
 // This method will be called when Electron has finished initialization
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  const credentialStore = createSecureCredentialStore({
+    safeStorage,
+    userDataPath: app.getPath('userData'),
+  });
+  registerCredentialIpc({ ipcMain, credentialStore, isTrustedSender: isTrustedCredentialSender });
+  createWindow();
+});
 
 // Quit when all windows are closed
 app.on('window-all-closed', () => {
@@ -145,10 +172,7 @@ app.on('activate', () => {
 // Security: Prevent navigation to external websites
 app.on('web-contents-created', (event, contents) => {
   contents.on('will-navigate', (event, navigationUrl) => {
-    const parsedUrl = new URL(navigationUrl);
-
-    if (parsedUrl.origin !== 'http://localhost:5173' && !navigationUrl.startsWith('file://')) {
-      event.preventDefault();
-    }
+    if (!isAppRendererUrl(navigationUrl)) event.preventDefault();
   });
+  contents.setWindowOpenHandler(() => ({ action: 'deny' }));
 });

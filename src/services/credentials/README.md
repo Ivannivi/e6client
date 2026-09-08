@@ -9,7 +9,12 @@ in-memory map is empty after reload and is never written to cookies, browser
 storage, or logs. It provides no at-rest protection against scripts in the same
 page, and JavaScript cannot guarantee that secret strings are zeroed in memory.
 Native adapters must implement OS-backed protection before reporting `secure`
-persistence; they belong to #59–#61.
+persistence. Electron does so through the isolated `createElectronCredentialStore()`
+bridge: the main process encrypts values with Electron `safeStorage` before writing
+them beneath the application data directory. On Linux it rejects Electron's
+`basic_text` fallback, so unavailable OS key protection returns the typed
+`unavailable` result and never writes a plaintext fallback. Android and iOS
+adapters remain in #60–#61.
 
 ```ts
 import { createWebCredentialStore } from './index';
@@ -44,8 +49,16 @@ same session behavior plus `failNext(operation, code)` to queue failures before
 side effects. Queues and data are isolated per factory call. The production
 barrel intentionally does not export the testing helper.
 
+The Electron preload exposes only `capabilities`, `get`, `set`, and `delete` on
+`window.electronAPI.credentials`; it does not expose a generic IPC or filesystem
+API. The main process accepts those requests only from the application renderer
+and repeats scope validation before touching encrypted data. This adapter is not
+yet wired into the account UI or migration flow; that remains #62.
+
 Verification: run `npm run typecheck`, `npm test`, and `npm run build`. The
 contract suite covers host/account isolation, rejected writes, failure injection,
-storage/log access guards, fresh instances, and fresh module loading. Once the
-store is integrated, verify actual application reload clears the web session;
-this change alone does not replace credentials in the existing account UI.
+storage/log access guards, fresh instances, and fresh module loading. The Electron
+suite covers encrypted restart persistence, `basic_text` rejection, typed storage
+failures, and its narrow IPC boundary. Once the store is integrated, verify actual
+application reload clears the web session; this change alone does not replace
+credentials in the existing account UI.

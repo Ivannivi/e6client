@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { createWebCredentialStore } from './index';
+import { createElectronCredentialStore } from './electron';
 import { createTestCredentialStore } from './testing';
 import type { CredentialScope, CredentialStore } from './types';
 
@@ -148,5 +149,23 @@ describe('deterministic test failures', () => {
     expect(await store.set(scope, { apiKey: 'secret' })).toEqual({ status: 'error', code: 'unavailable' });
     expect(await store.set(scope, { apiKey: 'secret' })).toEqual(success);
     expect(await createTestCredentialStore().store.set(scope, { apiKey: 'other' })).toEqual(success);
+  });
+});
+
+describe('Electron renderer adapter', () => {
+  it('uses only the isolated bridge and does not fall back to browser storage', async () => {
+    const bridge = {
+      credentials: {
+        capabilities: vi.fn(async () => ({ status: 'ok' as const, value: { persistence: 'secure' as const } })),
+        get: vi.fn(async () => ({ status: 'ok' as const, value: { apiKey: 'stored' } })),
+        set: vi.fn(async () => ({ status: 'ok' as const, value: undefined })),
+        delete: vi.fn(async () => ({ status: 'ok' as const, value: undefined })),
+      },
+    };
+    const store = createElectronCredentialStore(bridge);
+    await store.set(scope, { apiKey: 'new' }, { requirePersistence: true });
+    expect(bridge.credentials.set).toHaveBeenCalledWith(scope, { apiKey: 'new' }, { requirePersistence: true });
+    expect(await store.get(scope)).toEqual({ status: 'ok', value: { apiKey: 'stored' } });
+    expect(await createElectronCredentialStore(undefined).get(scope)).toEqual({ status: 'error', code: 'unavailable' });
   });
 });
