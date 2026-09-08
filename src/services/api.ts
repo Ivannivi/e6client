@@ -94,20 +94,60 @@ const http = axios.create({
   timeout: APP_CONFIG.api.timeout,
 });
 
-function buildApiUrl(
+/**
+ * Browser settings do not contain a way to establish ownership of a proxy.
+ * Keep this allowlist empty until a platform-owned proxy has an auditable trust
+ * boundary; user-entered proxy URLs are always untrusted.
+ */
+const trustedProxyOrigins = new Set<string>();
+
+export type ApiTransport = 'direct' | 'trusted-proxy' | 'untrusted-proxy';
+export type RequestAuthentication = 'optional' | 'required';
+
+/** Raised before a credential can be put into an untrusted proxy request. */
+export class ProxyAuthenticationError extends Error {
+  constructor() {
+    super('Authenticated requests require a direct or trusted connection. Disable the proxy or use an anonymous action.');
+    this.name = 'ProxyAuthenticationError';
+  }
+}
+
+function classifyTransport(settings: Settings): ApiTransport {
+  if (!settings.enableProxy || !settings.proxyUrl) return 'direct';
+
+  try {
+    return trustedProxyOrigins.has(new URL(settings.proxyUrl).origin)
+      ? 'trusted-proxy'
+      : 'untrusted-proxy';
+  } catch {
+    // An invalid configured proxy must never be treated as trusted.
+    return 'untrusted-proxy';
+  }
+}
+
+export function buildApiUrl(
   endpoint: string,
   params: Record<string, string>,
-  settings: Settings
+  settings: Settings,
+  authentication: RequestAuthentication = 'optional',
 ): string {
   const activeAccount = getActiveAccount(settings);
   const baseUrl = activeAccount?.hostUrl || APP_CONFIG.api.baseUrl;
+  const transport = classifyTransport(settings);
+  const hasCredentials = Boolean(activeAccount?.username?.trim() && activeAccount.apiKey?.trim());
+
+  if (authentication === 'required' && transport === 'untrusted-proxy') {
+    throw new ProxyAuthenticationError();
+  }
   
   const searchParams: Record<string, string> = {
     ...params,
     _cb: Date.now().toString(),
   };
 
-  if (activeAccount?.username && activeAccount?.apiKey) {
+  // Public reads may use an untrusted proxy anonymously. Credentials are only
+  // attached when the final transport is direct or explicitly allowlisted.
+  if (hasCredentials && transport !== 'untrusted-proxy') {
     searchParams.login = activeAccount.username.trim();
     searchParams.api_key = activeAccount.apiKey.trim();
   }
@@ -116,7 +156,7 @@ function buildApiUrl(
   Object.entries(searchParams).forEach(([k, v]) => targetUrl.searchParams.append(k, v));
   const targetString = targetUrl.toString();
 
-  if (!settings.enableProxy || !settings.proxyUrl) {
+  if (transport === 'direct') {
     return targetString;
   }
 
@@ -149,6 +189,9 @@ async function fetchWithRetry<T>(
 }
 
 export function parseApiError(error: unknown): string {
+  if (error instanceof ProxyAuthenticationError) {
+    return error.message;
+  }
   if (axios.isAxiosError(error)) {
     if (error.response) {
       const status = error.response.status;

@@ -90,7 +90,8 @@
       "proxyLabel": "Proxy / Base URL",
       "useDemoProxy": "Use Public Demo Proxy",
       "proxyPlaceholder": "http://localhost:8080 or https://corsproxy.io/?",
-      "proxyWarning": "e621.net blocks direct browser requests. Use a CORS proxy."
+      "proxyWarning": "e621.net blocks direct browser requests. Use a CORS proxy.",
+      "authProxyWarning": "Custom CORS proxies are used only for anonymous requests. Signed-in actions require a direct connection and are blocked while a proxy is enabled."
     }
   },
   "postCard": {
