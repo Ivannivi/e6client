@@ -3,7 +3,6 @@ package com.example.e6client;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
-import org.json.JSONArray;
 
 /** Canonical credential scope shared by every native credential operation. */
 final class CredentialScope {
@@ -20,7 +19,7 @@ final class CredentialScope {
             String rawPath = url.getRawPath();
             if (
                 scheme == null || host == null || url.getUserInfo() != null || url.getRawQuery() != null
-                || url.getRawFragment() != null || (rawPath != null && !rawPath.equals("/"))
+                || url.getRawFragment() != null || (rawPath != null && !rawPath.isEmpty() && !rawPath.equals("/"))
             ) {
                 throw new InvalidScopeException();
             }
@@ -31,7 +30,9 @@ final class CredentialScope {
             int port = url.getPort();
             boolean defaultPort = (scheme.equals("https") && port == 443) || (scheme.equals("http") && port == 80);
             String origin = scheme + "://" + host + (port == -1 || defaultPort ? "" : ":" + port);
-            return new JSONArray().put(accountId).put(origin).toString();
+            // Length-prefixing makes the opaque account ID boundary unambiguous
+            // without depending on Android's runtime-only org.json classes.
+            return "v1:" + accountId.length() + ":" + accountId + ":" + origin;
         } catch (URISyntaxException exception) {
             throw new InvalidScopeException();
         }

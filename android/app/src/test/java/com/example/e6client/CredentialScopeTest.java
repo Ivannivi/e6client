@@ -1,24 +1,36 @@
 package com.example.e6client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 
 public class CredentialScopeTest {
     @Test
-    public void canonicalizesHostCaseDefaultPortAndRootSlash() throws Exception {
+    public void canonicalizesOriginsWithOrWithoutRootSlashAndDefaultPort() throws Exception {
         assertEquals(
-            "[\"account-1\",\"https://e621.net\"]",
+            "v1:9:account-1:https://e621.net",
             CredentialScope.key("account-1", "HTTPS://E621.NET:443/")
+        );
+        assertEquals(
+            CredentialScope.key("account-1", "https://e621.net"),
+            CredentialScope.key("account-1", "https://e621.net/")
         );
     }
 
     @Test
     public void keepsAccountsSchemesAndNonDefaultPortsIsolated() throws Exception {
-        assertEquals(
-            "[\"account-2\",\"http://e621.net:8443\"]",
-            CredentialScope.key("account-2", "http://e621.net:8443")
-        );
+        String defaultHttps = CredentialScope.key("account-1", "https://e621.net");
+        String defaultHttpsWithPort = CredentialScope.key("account-1", "https://e621.net:443/");
+        String nonDefaultHttps = CredentialScope.key("account-1", "https://e621.net:8443");
+        String http = CredentialScope.key("account-1", "http://e621.net");
+        String otherAccount = CredentialScope.key("account-2", "https://e621.net");
+
+        assertEquals(defaultHttps, defaultHttpsWithPort);
+        assertEquals("v1:9:account-1:https://e621.net:8443", nonDefaultHttps);
+        assertNotEquals(defaultHttps, nonDefaultHttps);
+        assertNotEquals(defaultHttps, http);
+        assertNotEquals(defaultHttps, otherAccount);
     }
 
     @Test
