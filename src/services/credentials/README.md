@@ -16,6 +16,16 @@ them beneath the application data directory. On Linux it rejects Electron's
 `unavailable` result and never writes a plaintext fallback. Android and iOS
 adapters remain in #60–#61.
 
+Android now provides `createCapacitorCredentialStore()` through a local
+`CredentialStore` Capacitor plugin. Its main-process implementation creates an
+AES-GCM key in Android Keystore and writes only ciphertext to
+`getNoBackupFilesDir()`, which Android excludes from Auto Backup. A missing or
+permanently invalidated Keystore key deletes the encrypted record and returns
+the typed `unavailable` result so the caller can require reauthentication;
+there is no plaintext or browser-storage fallback. Application backups are also
+disabled in the Android manifest because legacy settings migration is still
+pending in #62.
+
 ```ts
 import { createWebCredentialStore } from './index';
 
@@ -54,6 +64,11 @@ The Electron preload exposes only `capabilities`, `get`, `set`, and `delete` on
 API. The main process accepts those requests only from the application renderer
 and repeats scope validation before touching encrypted data. This adapter is not
 yet wired into the account UI or migration flow; that remains #62.
+
+The Android plugin exposes the same four operations through Capacitor and
+validates the account ID plus canonical HTTP(S) origin before reading or
+writing. It returns only contract result codes—never a raw Keystore exception,
+URL, or credential—and does not log secrets.
 
 Verification: run `npm run typecheck`, `npm test`, and `npm run build`. The
 contract suite covers host/account isolation, rejected writes, failure injection,
