@@ -3,7 +3,7 @@ import { afterEach, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
 // Some test environments (e.g. Node 26) do not expose a usable localStorage global.
-if (!globalThis.localStorage) {
+if (typeof globalThis.localStorage?.clear !== 'function') {
   const store = new Map<string, string>();
   Object.defineProperty(globalThis, 'localStorage', {
     value: {

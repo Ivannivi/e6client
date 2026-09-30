@@ -20,7 +20,7 @@ vi.mock('react-i18next', () => ({
   Trans: ({ i18nKey }: { i18nKey: string }) => <>{i18nKey}</>,
 }));
 
-const apiMock = vi.hoisted(() => ({
+const servicesMock = vi.hoisted(() => ({
   getPosts: vi.fn(),
   searchTags: vi.fn(),
   getComments: vi.fn(),
@@ -29,8 +29,8 @@ const apiMock = vi.hoisted(() => ({
   getUserByName: vi.fn(),
 }));
 
-vi.mock('./services/api', () => ({
-  api: apiMock,
+vi.mock('./services', () => ({
+  ...servicesMock,
   parseApiError: (err: unknown) => err instanceof Error ? err.message : 'error',
 }));
 
@@ -62,16 +62,16 @@ beforeEach(() => {
     disconnect: vi.fn(),
   }));
   vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid' });
-  apiMock.getPosts.mockReset();
-  apiMock.searchTags.mockReset();
-  apiMock.getComments.mockReset();
-  apiMock.getUsersByIds.mockReset();
-  apiMock.getUser.mockReset();
-  apiMock.getUserByName.mockReset();
-  apiMock.getPosts.mockResolvedValue([]);
-  apiMock.getComments.mockResolvedValue([]);
-  apiMock.getUsersByIds.mockResolvedValue([]);
-  apiMock.getUser.mockResolvedValue(null);
+  servicesMock.getPosts.mockReset();
+  servicesMock.searchTags.mockReset();
+  servicesMock.getComments.mockReset();
+  servicesMock.getUsersByIds.mockReset();
+  servicesMock.getUser.mockReset();
+  servicesMock.getUserByName.mockReset();
+  servicesMock.getPosts.mockResolvedValue([]);
+  servicesMock.getComments.mockResolvedValue([]);
+  servicesMock.getUsersByIds.mockResolvedValue([]);
+  servicesMock.getUser.mockResolvedValue(null);
 });
 
 afterEach(() => {
@@ -86,13 +86,13 @@ describe('App', () => {
 
   it('fetches posts on mount', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
   });
 
   it('displays fetched posts in grid view', async () => {
     const post = makePost({ artist: ['testartist'] }, { url: 'https://example.com/img.png' });
     post.preview.url = 'https://example.com/preview.png';
-    apiMock.getPosts.mockResolvedValue([post]);
+    servicesMock.getPosts.mockResolvedValue([post]);
     render(<App />);
     await waitFor(() => expect(screen.getByAltText('Post 1')).toBeInTheDocument());
   });
@@ -100,26 +100,26 @@ describe('App', () => {
   it('displays posts in list view when view mode is toggled', async () => {
     const post = makePost({ artist: ['testartist'] }, { url: 'https://example.com/img.png' });
     post.preview.url = 'https://example.com/preview.png';
-    apiMock.getPosts.mockResolvedValue([post]);
+    servicesMock.getPosts.mockResolvedValue([post]);
     render(<App />);
     await waitFor(() => expect(screen.getByAltText('Post 1')).toBeInTheDocument());
   });
 
   it('shows empty state when no posts are returned', async () => {
-    apiMock.getPosts.mockResolvedValue([]);
+    servicesMock.getPosts.mockResolvedValue([]);
     render(<App />);
     await waitFor(() => expect(screen.getByText('app.noPosts')).toBeInTheDocument());
   });
 
   it('shows error banner when fetch fails', async () => {
-    apiMock.getPosts.mockRejectedValue(new Error('Network error'));
+    servicesMock.getPosts.mockRejectedValue(new Error('Network error'));
     render(<App />);
     await waitFor(() => expect(screen.getByText(/Network error/)).toBeInTheDocument());
   });
 
   it('opens settings modal when settings button is clicked', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const settingsBtn = screen.getByTitle(/shortcuts.settings/);
     fireEvent.click(settingsBtn);
     expect(screen.getByText('settings.title')).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe('App', () => {
 
   it('closes settings modal when cancel is clicked', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     fireEvent.click(screen.getByTitle(/shortcuts.settings/));
     expect(screen.getByText('settings.title')).toBeInTheDocument();
     fireEvent.click(screen.getByText('settings.cancel'));
@@ -136,47 +136,47 @@ describe('App', () => {
 
   it('opens keyboard shortcuts help when help button is clicked', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     fireEvent.click(screen.getByTitle(/shortcuts.settings/));
     fireEvent.click(screen.getByText('settings.tabs.shortcuts'));
     expect(screen.getByText('shortcutsHelp.title')).toBeInTheDocument();
   });
 
   it('performs search when query is submitted', async () => {
-    apiMock.getPosts.mockClear();
+    servicesMock.getPosts.mockClear();
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const input = screen.getByPlaceholderText('Search');
     fireEvent.change(input, { target: { value: 'fox' } });
     fireEvent.submit(input.closest('form')!);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalledTimes(2));
   });
 
   it('fetches random post when random button is clicked', async () => {
     const randomPost = makePost({ artist: ['random'] }, { url: 'https://example.com/r.png' });
     randomPost.preview.url = 'https://example.com/r-preview.png';
-    apiMock.getPosts.mockResolvedValue([randomPost]);
+    servicesMock.getPosts.mockResolvedValue([randomPost]);
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const randomBtn = screen.getByTitle('quickActions.randomPost');
     fireEvent.click(randomBtn);
     await waitFor(() => expect(screen.getByText(/postDetail.postId/)).toBeInTheDocument());
   });
 
   it('refreshes posts when refresh button is clicked', async () => {
-    apiMock.getPosts.mockClear();
+    servicesMock.getPosts.mockClear();
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    apiMock.getPosts.mockClear();
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
+    servicesMock.getPosts.mockClear();
     const refreshBtn = screen.getByTitle('quickActions.refresh');
     fireEvent.click(refreshBtn);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
   });
 
   it('opens post detail when a post card is clicked', async () => {
     const post = makePost({ artist: ['testartist'] }, { url: 'https://example.com/img.png' });
     post.preview.url = 'https://example.com/preview.png';
-    apiMock.getPosts.mockResolvedValue([post]);
+    servicesMock.getPosts.mockResolvedValue([post]);
     render(<App />);
     await waitFor(() => expect(screen.getByAltText('Post 1')).toBeInTheDocument());
     const card = screen.getByAltText('Post 1').closest('[data-disabled]') || screen.getByAltText('Post 1');
@@ -191,7 +191,7 @@ describe('App', () => {
     const ok = makePost({ general: ['safe'] });
     ok.id = 200;
     ok.preview.url = 'https://example.com/safe.png';
-    apiMock.getPosts.mockResolvedValue([blacklisted, ok]);
+    servicesMock.getPosts.mockResolvedValue([blacklisted, ok]);
     cookieStorage.setItem('e6-settings', JSON.stringify({
       ...makeSettings({ blacklistedTags: ['gore'] }),
     }));
@@ -201,13 +201,13 @@ describe('App', () => {
   });
 
   it('shows tag suggestions when typing 3+ characters', async () => {
-    apiMock.searchTags.mockResolvedValue([makeTagSuggestion({ name: 'fox' })]);
+    servicesMock.searchTags.mockResolvedValue([makeTagSuggestion({ name: 'fox' })]);
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const input = screen.getByPlaceholderText('Search');
     fireEvent.change(input, { target: { value: 'fox' } });
     fireEvent.focus(input);
-    await waitFor(() => expect(apiMock.searchTags).toHaveBeenCalled(), { timeout: 5000 });
+    await waitFor(() => expect(servicesMock.searchTags).toHaveBeenCalled(), { timeout: 5000 });
   });
 
   it('shows favorites tab when account is logged in', async () => {
@@ -216,13 +216,13 @@ describe('App', () => {
       ...makeSettings({ accounts: [account], activeAccountId: account.id }),
     }));
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
   });
 
   it('shows clear search button in empty state when query is set', async () => {
-    apiMock.getPosts.mockResolvedValue([]);
+    servicesMock.getPosts.mockResolvedValue([]);
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const input = screen.getByPlaceholderText('Search');
     fireEvent.change(input, { target: { value: 'nothing' } });
     fireEvent.submit(input.closest('form')!);
@@ -230,7 +230,7 @@ describe('App', () => {
   });
 
   it('shows loading indicator while fetching', async () => {
-    apiMock.getPosts.mockReturnValue(new Promise(() => {}));
+    servicesMock.getPosts.mockReturnValue(new Promise(() => {}));
     render(<App />);
     await waitFor(() => expect(screen.getByText('app.loadingMore')).toBeInTheDocument());
   });
@@ -239,22 +239,22 @@ describe('App', () => {
     const post = makePost({ artist: ['a'] }, { url: 'https://example.com/i.png' });
     post.preview.url = 'https://example.com/p.png';
     // Return posts on first call, empty on second to set hasMore=false
-    apiMock.getPosts.mockResolvedValueOnce([post]).mockResolvedValueOnce([]);
+    servicesMock.getPosts.mockResolvedValueOnce([post]).mockResolvedValueOnce([]);
     render(<App />);
     await waitFor(() => expect(screen.getByAltText('Post 1')).toBeInTheDocument());
   });
 
   it('retries fetch when error banner retry is clicked', async () => {
-    apiMock.getPosts.mockRejectedValueOnce(new Error('fail')).mockResolvedValue([]);
+    servicesMock.getPosts.mockRejectedValueOnce(new Error('fail')).mockResolvedValue([]);
     render(<App />);
     await waitFor(() => expect(screen.getByText(/fail/)).toBeInTheDocument());
-    apiMock.getPosts.mockClear();
+    servicesMock.getPosts.mockClear();
     fireEvent.click(screen.getByText('error.retry'));
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
   });
 
   it('opens settings from error banner', async () => {
-    apiMock.getPosts.mockRejectedValue(new Error('fail'));
+    servicesMock.getPosts.mockRejectedValue(new Error('fail'));
     render(<App />);
     await waitFor(() => expect(screen.getByText(/fail/)).toBeInTheDocument());
     fireEvent.click(screen.getByText('error.settings'));
@@ -264,7 +264,7 @@ describe('App', () => {
   it('closes post detail when backdrop is clicked', async () => {
     const post = makePost({ artist: ['a'] }, { url: 'https://example.com/i.png' });
     post.preview.url = 'https://example.com/p.png';
-    apiMock.getPosts.mockResolvedValue([post]);
+    servicesMock.getPosts.mockResolvedValue([post]);
     render(<App />);
     await waitFor(() => expect(screen.getByAltText('Post 1')).toBeInTheDocument());
     fireEvent.click(screen.getByAltText('Post 1').closest('[data-disabled]')!);
@@ -277,17 +277,17 @@ describe('App', () => {
   it('goes home when title button is clicked', async () => {
     const post = makePost({ artist: ['a'] }, { url: 'https://example.com/i.png' });
     post.preview.url = 'https://example.com/p.png';
-    apiMock.getPosts.mockResolvedValue([post]);
+    servicesMock.getPosts.mockResolvedValue([post]);
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    apiMock.getPosts.mockClear();
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
+    servicesMock.getPosts.mockClear();
     fireEvent.click(screen.getByAltText('e6client'));
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
   });
 
   it('renders the logo image with a non-empty src', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const logo = screen.getByAltText('e6client') as HTMLImageElement;
     expect(logo.src).not.toBe('');
   });
@@ -295,14 +295,14 @@ describe('App', () => {
   it('renders compact view cards', async () => {
     const post = makePost({ artist: ['a'] }, { url: 'https://example.com/i.png' });
     post.preview.url = 'https://example.com/p.png';
-    apiMock.getPosts.mockResolvedValue([post]);
+    servicesMock.getPosts.mockResolvedValue([post]);
     render(<App />);
     await waitFor(() => expect(screen.getByAltText('Post 1')).toBeInTheDocument());
   });
 
   it('focuses search input via keyboard shortcut /', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const input = screen.getByPlaceholderText('Search');
     const focusSpy = vi.spyOn(input, 'focus');
     fireEvent.keyDown(document.body, { key: '/' });
@@ -311,36 +311,36 @@ describe('App', () => {
 
   it('opens settings via keyboard shortcut s', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     fireEvent.keyDown(document.body, { key: 's' });
     expect(screen.getByText('settings.title')).toBeInTheDocument();
   });
 
   it('toggles view mode via keyboard shortcut v', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     fireEvent.keyDown(document.body, { key: 'v' });
   });
 
   it('refreshes via keyboard shortcut r', async () => {
-    apiMock.getPosts.mockResolvedValue([]);
+    servicesMock.getPosts.mockResolvedValue([]);
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     // Wait for loading to finish
     await waitFor(() => expect(screen.queryByText('app.loadingMore')).not.toBeInTheDocument());
-    apiMock.getPosts.mockClear();
+    servicesMock.getPosts.mockClear();
     fireEvent.keyDown(document.body, { key: 'r' });
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
   });
 
   it('navigates home via keyboard shortcut h', async () => {
-    apiMock.getPosts.mockResolvedValue([]);
+    servicesMock.getPosts.mockResolvedValue([]);
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     await waitFor(() => expect(screen.queryByText('app.loadingMore')).not.toBeInTheDocument());
-    apiMock.getPosts.mockClear();
+    servicesMock.getPosts.mockClear();
     fireEvent.keyDown(document.body, { key: 'h' });
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
   });
 
   it('navigates to favorites via keyboard shortcut f when logged in', async () => {
@@ -348,64 +348,64 @@ describe('App', () => {
     cookieStorage.setItem('e6-settings', JSON.stringify({
       ...makeSettings({ accounts: [account], activeAccountId: account.id }),
     }));
-    apiMock.getPosts.mockResolvedValue([]);
+    servicesMock.getPosts.mockResolvedValue([]);
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     await waitFor(() => expect(screen.queryByText('app.loadingMore')).not.toBeInTheDocument());
-    apiMock.getPosts.mockClear();
+    servicesMock.getPosts.mockClear();
     fireEvent.keyDown(document.body, { key: 'f' });
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    expect(apiMock.getPosts.mock.calls[0][1]).toContain('fav:alice');
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
+    expect(servicesMock.getPosts.mock.calls[0][1]).toContain('fav:alice');
   });
 
   it('does not navigate to favorites when not logged in', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    apiMock.getPosts.mockClear();
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
+    servicesMock.getPosts.mockClear();
     fireEvent.keyDown(document.body, { key: 'f' });
-    expect(apiMock.getPosts).not.toHaveBeenCalled();
+    expect(servicesMock.getPosts).not.toHaveBeenCalled();
   });
 
   it('fetches random post via keyboard shortcut x', async () => {
     const randomPost = makePost({ artist: ['r'] }, { url: 'https://example.com/r.png' });
     randomPost.preview.url = 'https://example.com/rp.png';
-    apiMock.getPosts.mockResolvedValue([randomPost]);
+    servicesMock.getPosts.mockResolvedValue([randomPost]);
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     fireEvent.keyDown(document.body, { key: 'x' });
     await waitFor(() => expect(screen.getByText(/postDetail.postId/)).toBeInTheDocument());
   });
 
   it('shows random post error toast when fetch fails', async () => {
-    apiMock.getPosts.mockRejectedValue(new Error('random fail'));
+    servicesMock.getPosts.mockRejectedValue(new Error('random fail'));
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
-    apiMock.getPosts.mockClear();
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
+    servicesMock.getPosts.mockClear();
     fireEvent.click(screen.getByTitle('quickActions.randomPost'));
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
   });
 
   it('renders mobile navigation', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     expect(screen.getAllByText('tabs.browse').length).toBeGreaterThan(0);
     expect(screen.getAllByText('tabs.settings').length).toBeGreaterThan(0);
   });
 
   it('opens settings from mobile nav', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     fireEvent.click(screen.getAllByText('tabs.settings')[0]);
     expect(screen.getByText('settings.title')).toBeInTheDocument();
   });
 
   it('displays post count in comments header', async () => {
     const comment = makeComment({ body: 'hello' });
-    apiMock.getComments.mockResolvedValue([comment]);
-    apiMock.getUsersByIds.mockResolvedValue([]);
+    servicesMock.getComments.mockResolvedValue([comment]);
+    servicesMock.getUsersByIds.mockResolvedValue([]);
     const post = makePost({ artist: ['a'] }, { url: 'https://example.com/i.png' });
     post.preview.url = 'https://example.com/p.png';
-    apiMock.getPosts.mockResolvedValue([post]);
+    servicesMock.getPosts.mockResolvedValue([post]);
     render(<App />);
     await waitFor(() => expect(screen.getByAltText('Post 1')).toBeInTheDocument());
     fireEvent.click(screen.getByAltText('Post 1').closest('[data-disabled]')!);
@@ -415,7 +415,7 @@ describe('App', () => {
   it('shows search history when input is focused with no query', async () => {
     localStorage.setItem('e6-search-history', JSON.stringify([{ query: 'fox', timestamp: Date.now() }]));
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const input = screen.getByPlaceholderText('Search');
     fireEvent.focus(input);
     await waitFor(() => expect(screen.getByText('fox')).toBeInTheDocument());
@@ -424,13 +424,13 @@ describe('App', () => {
   it('selects from search history', async () => {
     localStorage.setItem('e6-search-history', JSON.stringify([{ query: 'fox', timestamp: Date.now() }]));
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const input = screen.getByPlaceholderText('Search');
     fireEvent.focus(input);
     await waitFor(() => expect(screen.getByText('fox')).toBeInTheDocument());
-    apiMock.getPosts.mockClear();
+    servicesMock.getPosts.mockClear();
     fireEvent.click(screen.getByText('fox'));
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
   });
 
   it('clears search history', async () => {
@@ -439,7 +439,7 @@ describe('App', () => {
       { query: 'cat', timestamp: Date.now() },
     ]));
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const input = screen.getByPlaceholderText('Search');
     fireEvent.focus(input);
     await waitFor(() => expect(screen.getByText('searchHistory.clearAll')).toBeInTheDocument());
@@ -452,7 +452,7 @@ describe('App', () => {
       { query: 'fox', timestamp: Date.now() },
     ]));
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const input = screen.getByPlaceholderText('Search');
     fireEvent.focus(input);
     await waitFor(() => expect(screen.getByText('fox')).toBeInTheDocument());
@@ -463,9 +463,9 @@ describe('App', () => {
   });
 
   it('clicking a tag suggestion inserts it into the search', async () => {
-    apiMock.searchTags.mockResolvedValue([makeTagSuggestion({ name: 'fox', post_count: 100 })]);
+    servicesMock.searchTags.mockResolvedValue([makeTagSuggestion({ name: 'fox', post_count: 100 })]);
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     const input = screen.getByPlaceholderText('Search') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'fox' } });
     fireEvent.focus(input);
@@ -476,7 +476,7 @@ describe('App', () => {
 
   it('updates settings via settings modal save', async () => {
     render(<App />);
-    await waitFor(() => expect(apiMock.getPosts).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getPosts).toHaveBeenCalled());
     fireEvent.click(screen.getByTitle(/shortcuts.settings/));
     expect(screen.getByText('settings.title')).toBeInTheDocument();
     fireEvent.click(screen.getByText('settings.saveChanges'));

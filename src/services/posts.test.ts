@@ -1,34 +1,17 @@
-import { describe, it, expect } from 'vitest';
-import { mapV2Post, type RawPostV2 } from './api';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { getPosts, mapV2Post } from './posts';
+import { makeSettings, makeRawPost } from '../test/factories';
 
-function makeRawPost(overrides: Partial<RawPostV2> = {}): RawPostV2 {
-  return {
-    id: 4149486,
-    created_at: '2023-07-04T01:21:33.766-07:00',
-    updated_at: '2026-05-06T07:49:00.191-07:00',
-    change_seq: 70845555,
-    files: {
-      meta: { md5: 'abc123', ext: 'png', size: 6749159, duration: null, has_sample: true },
-      original: { width: 1874, height: 1970, url: 'https://static1.e621.net/original.png' },
-      preview: { width: 256, height: 269, jpg: 'https://static1.e621.net/preview.jpg', webp: 'https://static1.e621.net/preview.webp' },
-      sample: { width: 850, height: 894, jpg: 'https://static1.e621.net/sample.jpg', webp: 'https://static1.e621.net/sample.webp' },
-    },
-    uploader_id: 509791,
-    uploader_name: 'someone',
-    approver_id: 12286,
-    stats: { score: { up: 3992, down: -29, total: 3963 }, fav_count: 6125, is_favorited: false, comment_count: 81 },
-    flags: { pending: false, flagged: false, note_locked: false, status_locked: false, rating_locked: false, deleted: false },
-    has: { parent: false, children: false, active_children: false, notes: false, sample: true },
-    relationships: { parent_id: null, children: [] },
-    pools: [],
-    rating: 's',
-    locked_tags: [],
-    sources: ['https://example.com/source'],
-    description: 'a description',
-    tags: { general: ['solo'], species: ['horse'], character: [], artist: ['someone'], invalid: [], meta: [], lore: [] },
-    ...overrides,
-  };
-}
+const { clientGet } = vi.hoisted(() => ({ clientGet: vi.fn() }));
+
+vi.mock('./client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./client')>()),
+  client: { get: clientGet },
+}));
+
+beforeEach(() => {
+  clientGet.mockReset();
+});
 
 describe('mapV2Post', () => {
   it('maps files.original/meta into the legacy flat file shape', () => {
@@ -99,5 +82,59 @@ describe('mapV2Post', () => {
     const raw = makeRawPost();
     raw.files.meta.duration = 42.5;
     expect(mapV2Post(raw).duration).toBe(42.5);
+  });
+});
+
+describe('getPosts', () => {
+  it('requests the posts endpoint with the search parameters', async () => {
+    clientGet.mockResolvedValue([]);
+    const settings = makeSettings();
+
+    await getPosts(settings, 'fox', 2, 40);
+
+    expect(clientGet).toHaveBeenCalledWith('/posts.json', {
+      tags: 'fox',
+      page: '2',
+      limit: '40',
+      v2: 'true',
+      mode: 'extended',
+    }, settings);
+  });
+
+  it('uses the configured default page size and page 1 when omitted', async () => {
+    clientGet.mockResolvedValue([]);
+
+    await getPosts(makeSettings());
+
+    expect(clientGet).toHaveBeenCalledWith('/posts.json', {
+      tags: '',
+      page: '1',
+      limit: '20',
+      v2: 'true',
+      mode: 'extended',
+    }, expect.anything());
+  });
+
+  it('maps raw v2 posts into the legacy Post shape', async () => {
+    const raw = makeRawPost();
+    clientGet.mockResolvedValue([raw]);
+
+    const posts = await getPosts(makeSettings(), 'fox', 1, 20);
+
+    expect(posts).toHaveLength(1);
+    expect(posts[0].id).toBe(raw.id);
+    expect(posts[0].file.ext).toBe('png');
+    expect(posts[0].score.total).toBe(3963);
+  });
+
+  it('returns an empty array when the api returns no posts', async () => {
+    clientGet.mockResolvedValue([]);
+    const posts = await getPosts(makeSettings());
+    expect(posts).toEqual([]);
+  });
+
+  it('propagates client errors to the caller', async () => {
+    clientGet.mockRejectedValue(new Error('boom'));
+    await expect(getPosts(makeSettings())).rejects.toBeDefined();
   });
 });

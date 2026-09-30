@@ -19,13 +19,11 @@ vi.mock('react-i18next', () => ({
   Trans: ({ i18nKey }: { i18nKey: string }) => <>{i18nKey}</>,
 }));
 
-const apiMock = vi.hoisted(() => ({
+const servicesMock = vi.hoisted(() => ({
   getUserByName: vi.fn(),
 }));
 
-vi.mock('../../services/api', () => ({
-  api: apiMock,
-}));
+vi.mock('../../services', () => servicesMock);
 
 vi.mock('../ui/Ripple', () => ({
   Ripple: ({ children, onClick, disabled }: { children: ReactNode; onClick?: () => void; disabled?: boolean }) => (
@@ -34,7 +32,7 @@ vi.mock('../ui/Ripple', () => ({
 }));
 
 beforeEach(() => {
-  apiMock.getUserByName.mockReset();
+  servicesMock.getUserByName.mockReset();
   vi.stubGlobal('crypto', { randomUUID: () => 'test-uuid' });
 });
 
@@ -175,7 +173,7 @@ describe('SettingsModal', () => {
 
   it('shows sync button when account has credentials', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    apiMock.getUserByName.mockResolvedValue(makeAccount());
+    servicesMock.getUserByName.mockResolvedValue(makeAccount());
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
@@ -185,14 +183,14 @@ describe('SettingsModal', () => {
 
   it('syncs blacklist from cloud', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    apiMock.getUserByName.mockResolvedValue({ blacklisted_tags: 'gore\nscat\nyoung' });
+    servicesMock.getUserByName.mockResolvedValue({ blacklisted_tags: 'gore\nscat\nyoung' });
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
     fireEvent.click(screen.getByText('settings.tabs.blacklist'));
     await waitFor(() => expect(screen.getByTitle('settings.blacklist.refreshTitle')).toBeInTheDocument());
     fireEvent.click(screen.getByTitle('settings.blacklist.refreshTitle'));
-    await waitFor(() => expect(apiMock.getUserByName).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getUserByName).toHaveBeenCalled());
   });
 
   it('shows network proxy settings when proxy is enabled', () => {
@@ -313,7 +311,7 @@ describe('SettingsModal', () => {
 
   it('syncs blacklist and shows up to date message', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    apiMock.getUserByName.mockResolvedValue({ blacklisted_tags: 'gore' });
+    servicesMock.getUserByName.mockResolvedValue({ blacklisted_tags: 'gore' });
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id, blacklistedTags: ['gore'] })} onUpdate={vi.fn()} />,
     );
@@ -325,21 +323,21 @@ describe('SettingsModal', () => {
 
   it('syncs blacklist and shows synced count for new tags', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    apiMock.getUserByName.mockResolvedValue({ blacklisted_tags: 'gore\nscat' });
+    servicesMock.getUserByName.mockResolvedValue({ blacklisted_tags: 'gore\nscat' });
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id, blacklistedTags: [] })} onUpdate={vi.fn()} />,
     );
     fireEvent.click(screen.getByText('settings.tabs.blacklist'));
     await waitFor(() => expect(screen.getByTitle('settings.blacklist.refreshTitle')).toBeInTheDocument());
     // Auto-sync already merged tags, so manual sync shows up to date
-    apiMock.getUserByName.mockResolvedValue({ blacklisted_tags: 'gore\nscat' });
+    servicesMock.getUserByName.mockResolvedValue({ blacklisted_tags: 'gore\nscat' });
     fireEvent.click(screen.getByTitle('settings.blacklist.refreshTitle'));
     await waitFor(() => expect(screen.getByText(/settings.blacklist.sync/)).toBeInTheDocument());
   });
 
   it('shows user not found when blacklist is empty', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    apiMock.getUserByName.mockResolvedValue({ blacklisted_tags: '' });
+    servicesMock.getUserByName.mockResolvedValue({ blacklisted_tags: '' });
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
@@ -351,7 +349,7 @@ describe('SettingsModal', () => {
 
   it('shows 403 error on sync failure', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    apiMock.getUserByName.mockRejectedValue({ response: { status: 403 } });
+    servicesMock.getUserByName.mockRejectedValue({ response: { status: 403 } });
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
@@ -363,7 +361,7 @@ describe('SettingsModal', () => {
 
   it('shows 401 error on sync failure', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    apiMock.getUserByName.mockRejectedValue({ response: { status: 401 } });
+    servicesMock.getUserByName.mockRejectedValue({ response: { status: 401 } });
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
@@ -375,7 +373,7 @@ describe('SettingsModal', () => {
 
   it('shows generic error on sync failure', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    apiMock.getUserByName.mockRejectedValue(new Error('network'));
+    servicesMock.getUserByName.mockRejectedValue(new Error('network'));
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
@@ -387,11 +385,11 @@ describe('SettingsModal', () => {
 
   it('auto-syncs blacklist when modal opens with account', async () => {
     const account = makeAccount({ username: 'alice', apiKey: 'key' });
-    apiMock.getUserByName.mockResolvedValue({ blacklisted_tags: 'gore\nscat' });
+    servicesMock.getUserByName.mockResolvedValue({ blacklisted_tags: 'gore\nscat' });
     render(
       <SettingsModal isOpen={true} onClose={vi.fn()} settings={makeSettings({ accounts: [account], activeAccountId: account.id })} onUpdate={vi.fn()} />,
     );
-    await waitFor(() => expect(apiMock.getUserByName).toHaveBeenCalled());
+    await waitFor(() => expect(servicesMock.getUserByName).toHaveBeenCalled());
   });
 
   it('toggles proxy enable in network tab', () => {

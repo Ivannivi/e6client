@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo, FormEvent, Key } fro
 import { useTranslation } from 'react-i18next';
 import type { Post, Settings, TagSuggestion } from './types';
 import { getActiveAccount, isSafeProvider } from './types';
-import { api, parseApiError } from './services/api';
+import { getPosts, searchTags, parseApiError } from './services';
 import { PostCard } from './components/post/PostCard';
 import { PostListItem } from './components/post/PostListItem';
 import { PostDetail } from './components/post/PostDetail';
@@ -95,7 +95,7 @@ export default function App() {
         }
 
         const currentPage = reset ? 1 : page;
-        const fetched = await api.getPosts(settings, finalQuery, currentPage);
+        const fetched = await getPosts(settings, finalQuery, currentPage);
 
         setHasMore(fetched.length > 0);
 
@@ -200,7 +200,7 @@ export default function App() {
       if (activeAccount && isSafeProvider(activeAccount.hostUrl)) {
         randomQuery = 'rating:s ' + randomQuery;
       }
-      const randomPosts = await api.getPosts(settings, randomQuery, 1, 1);
+      const randomPosts = await getPosts(settings, randomQuery, 1, 1);
       if (randomPosts.length > 0) {
         openDetail(randomPosts[0]);
         info(t('app.randomPostSuccess'));
@@ -271,7 +271,7 @@ export default function App() {
     const lastTag = debouncedQuery.split(' ').pop() ?? '';
     if (lastTag.length < 3) return;
 
-    api.searchTags(settings, lastTag).then(setSuggestions);
+    searchTags(settings, lastTag).then(setSuggestions);
   }, [debouncedQuery, showSuggestions, settings, tab]);
 
   useIntersectionObserver(

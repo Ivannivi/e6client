@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef, Key } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Post, Settings, Comment } from '../../types';
-import { api } from '../../services/api';
+import { getComments, getUser, getUsersByIds } from '../../services';
 import { RATING, TAG_STYLES } from '../../config';
 import { formatFileSize, isVideoFile, cn, downloadFile, shareContent, generatePostFilename, copyToClipboard } from '../../utils';
 
@@ -42,11 +42,11 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
     async function load() {
       setLoadingComments(true);
       try {
-        const rawComments = await api.getComments(settings, post.id);
+        const rawComments = await getComments(settings, post.id);
         if (cancelled) return;
 
         const creatorIds = [...new Set(rawComments.map((c) => c.creator_id))];
-        const users = await api.getUsersByIds(settings, creatorIds);
+        const users = await getUsersByIds(settings, creatorIds);
         const userMap = new Map(users.map((u) => [u.id, u]));
 
         const enriched = rawComments.map((c) => ({
@@ -64,7 +64,7 @@ export function PostDetail({ post, settings, onClose, onSearchTag }: Props) {
 
     load();
 
-    api.getUser(settings, post.uploader_id).then((user) => {
+    getUser(settings, post.uploader_id).then((user) => {
       if (user && !cancelled) setUploaderName(user.name);
     });
 

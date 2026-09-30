@@ -1,5 +1,5 @@
 import type { Post, Settings, Account, Comment, User, TagSuggestion } from '../types';
-import type { RawPostV2 } from '../services/api';
+import type { RawPostV2 } from '../services';
 
 export function makeAccount(overrides: Partial<Account> = {}): Account {
   return {

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, KeyboardEvent, Key } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Settings, Account } from '../../types';
 import { getActiveAccount, createAccount } from '../../types';
-import { api } from '../../services/api';
+import { getUserByName } from '../../services';
 import { cn } from '../../utils';
 import { Ripple } from '../ui/Ripple';
 
@@ -65,7 +65,7 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
     setSyncStatus(null);
 
     try {
-      const user = await api.getUserByName(local, activeAccount.username);
+      const user = await getUserByName(local, activeAccount.username);
       if (user?.blacklisted_tags) {
         const cloudTags = user.blacklisted_tags
           .split(/\r?\n/)
@@ -132,7 +132,7 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdate }: Props) {
     setSyncStatus(null);
 
     try {
-      const user = await api.getUserByName(local, activeAccount.username);
+      const user = await getUserByName(local, activeAccount.username);
       if (user?.blacklisted_tags) {
         const cloudTags = user.blacklisted_tags
           .split(/\r?\n/)
